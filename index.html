@@ -289,7 +289,25 @@ const secret="8Pk0m43NMEFFGJ/M01ZptaPxzCnOfAQBeL1UY1buZX6TgZPV++YQRJ82+2P0ivY5cP
 /* 여기에 한국 시장 데이터 연결 */
 
 </script>
+<script>
 
+async function loadCrypto(){
+
+let r = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd")
+
+let d = await r.json()
+
+document.getElementById("btc").innerText = "$"+d.bitcoin.usd.toLocaleString()
+
+document.getElementById("eth").innerText = "$"+d.ethereum.usd.toLocaleString()
+
+}
+
+loadCrypto()
+
+setInterval(loadCrypto,60000)
+
+</script>
 
 </body>
 </html>
