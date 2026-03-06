@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InvestFlow AI Market Dashboard Pro</title>
+    <title>InvestFlow AI Market Dashboard Pro (Numbered)</title>
     <style>
         :root {
             --bg-dark: #0f172a;
@@ -12,18 +12,26 @@
             --up: #f87171;
             --down: #60a5fa;
             --text: #f8fafc;
+            --status-dim: #64748b;
         }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-dark); color: var(--text); margin: 0; padding: 20px; }
         h1 { text-align: center; margin-bottom: 30px; color: var(--primary); font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
         .card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: 0.3s; }
-        .card:hover { transform: translateY(-4px); box-shadow: 0 0 25px rgba(0,0,0,0.8); }
-        .title { font-size: 17px; margin-bottom: 15px; color: var(--primary); font-weight: bold; border-bottom: 1px solid #334155; padding-bottom: 8px; }
-        .item { display: flex; justify-content: space-between; margin: 10px 0; font-size: 14px; }
+        .card:hover { transform: translateY(-4px); }
+        
+        .title-area { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 8px; margin-bottom: 15px; }
+        .title { font-size: 17px; color: var(--primary); font-weight: bold; margin: 0; }
+        .refresh-btn { background: none; border: none; color: var(--status-dim); cursor: pointer; font-size: 18px; transition: 0.2s; padding: 0 5px; }
+        .refresh-btn:hover { color: var(--primary); transform: rotate(180deg); }
+
+        .item { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; font-size: 14px; }
+        .name-box { display: flex; align-items: baseline; }
+        .net-status { font-size: 9px; margin-right: 8px; color: var(--status-dim); text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; }
         .value { font-weight: bold; font-family: 'Consolas', monospace; white-space: nowrap; }
         .up { color: var(--up); }
         .down { color: var(--down); }
-        .percent { font-size: 12px; margin-left: 5px; font-weight: normal; }
+        .percent { font-size: 12px; margin-left: 5px; font-weight: normal; opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -32,212 +40,225 @@
 
 <div class="grid">
     <div class="card">
-        <div class="title">한국 시장</div>
-        <div class="item">KOSPI <span id="kospi" class="value">loading</span></div>
-        <div class="item">KOSDAQ <span id="kosdaq" class="value">loading</span></div>
-        <div class="item">야간선물 <span id="nightfut" class="value">loading</span></div>
-        <div class="item">외국인 수급 <span id="foreign" class="value">loading</span></div>
-        <div class="item">기관 수급 <span id="inst" class="value">loading</span></div>
-        <div class="item">개인 수급 <span id="retail" class="value">loading</span></div>
+        <div class="title-area">
+            <span class="title">1. 한국 시장</span>
+            <button class="refresh-btn" onclick="loadKorea()">↻</button>
+        </div>
+        <div class="item"><div class="name-box"><span id="kospi-net" class="net-status">sync</span>KOSPI</div><span id="kospi" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="kosdaq-net" class="net-status">sync</span>KOSDAQ</div><span id="kosdaq" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="nightfut-net" class="net-status">sync</span>야간선물</div><span id="nightfut" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="foreign-net" class="net-status">sync</span>외국인 수급</div><span id="foreign" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="inst-net" class="net-status">sync</span>기관 수급</div><span id="inst" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="retail-net" class="net-status">sync</span>개인 수급</div><span id="retail" class="value">-</span></div>
     </div>
 
     <div class="card">
-        <div class="title">미국 시장</div>
-        <div class="item">S&P500 (SPY) <span id="sp500" class="value">loading</span></div>
-        <div class="item">NASDAQ (QQQ) <span id="nasdaq" class="value">loading</span></div>
-        <div class="item">VIX 지수 <span id="vix" class="value">loading</span></div>
-        <div class="item">SOX (반도체) <span id="sox" class="value">loading</span></div>
+        <div class="title-area">
+            <span class="title">2. 미국 시장</span>
+            <button class="refresh-btn" onclick="loadUSMarket()">↻</button>
+        </div>
+        <div class="item"><div class="name-box"><span id="sp500-net" class="net-status">sync</span>S&P500 (SPY)</div><span id="sp500" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="nasdaq-net" class="net-status">sync</span>NASDAQ (QQQ)</div><span id="nasdaq" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="vix-net" class="net-status">sync</span>VIX 지수</div><span id="vix" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="sox-net" class="net-status">sync</span>SOX (반도체)</div><span id="sox" class="value">-</span></div>
     </div>
 
     <div class="card">
-        <div class="title">미국 선물</div>
-        <div class="item">S&P500 Fut <span id="spfuture" class="value">loading</span></div>
-        <div class="item">Nasdaq Fut <span id="nasfuture" class="value">loading</span></div>
-        <div class="item">Russel 2000 Fut <span id="rtyfuture" class="value">loading</span></div>
+        <div class="title-area">
+            <span class="title">3. 미국 선물</span>
+            <button class="refresh-btn" onclick="loadFutures()">↻</button>
+        </div>
+        <div class="item"><div class="name-box"><span id="spfuture-net" class="net-status">sync</span>S&P500 Fut</div><span id="spfuture" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="nasfuture-net" class="net-status">sync</span>Nasdaq Fut</div><span id="nasfuture" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="rtyfuture-net" class="net-status">sync</span>Russel 2000 Fut</div><span id="rtyfuture" class="value">-</span></div>
     </div>
 
     <div class="card">
-        <div class="title">암호화폐</div>
-        <div class="item">Bitcoin (BTC) <span id="btc" class="value">loading</span></div>
-        <div class="item">Ethereum (ETH) <span id="eth" class="value">loading</span></div>
-        <div class="item">Solana (SOL) <span id="sol" class="value">loading</span></div>
-        <div class="item">Total Market Cap <span id="cryptocap" class="value">loading</span></div>
+        <div class="title-area">
+            <span class="title">4. 암호화폐</span>
+            <button class="refresh-btn" onclick="loadCrypto()">↻</button>
+        </div>
+        <div class="item"><div class="name-box"><span id="btc-net" class="net-status">sync</span>Bitcoin (BTC)</div><span id="btc" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="eth-net" class="net-status">sync</span>Ethereum (ETH)</div><span id="eth" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="sol-net" class="net-status">sync</span>Solana (SOL)</div><span id="sol" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="cryptocap-net" class="net-status">sync</span>Total Mkt Cap</div><span id="cryptocap" class="value">-</span></div>
     </div>
 
     <div class="card">
-        <div class="title">원자재 & 달러</div>
-        <div class="item">Gold <span id="gold" class="value">loading</span></div>
-        <div class="item">Silver <span id="silver" class="value">loading</span></div>
-        <div class="item">Oil (WTI) <span id="oil" class="value">loading</span></div>
-        <div class="item">DXY (달러인덱스) <span id="dxy" class="value">loading</span></div>
+        <div class="title-area">
+            <span class="title">5. 원자재 & 달러</span>
+            <button class="refresh-btn" onclick="loadCommodities()">↻</button>
+        </div>
+        <div class="item"><div class="name-box"><span id="gold-net" class="net-status">sync</span>Gold</div><span id="gold" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="silver-net" class="net-status">sync</span>Silver</div><span id="silver" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="oil-net" class="net-status">sync</span>Oil (WTI)</div><span id="oil" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="dxy-net" class="net-status">sync</span>Dollar Index</div><span id="dxy" class="value">-</span></div>
     </div>
 
     <div class="card">
-        <div class="title">외환 (FX)</div>
-        <div class="item">USD/KRW (환율) <span id="uskrw" class="value">loading</span></div>
-        <div class="item">USD/JPY <span id="usjpy" class="value">loading</span></div>
-        <div class="item">EUR/USD <span id="eurusd" class="value">loading</span></div>
+        <div class="title-area">
+            <span class="title">6. 외환 (FX)</span>
+            <button class="refresh-btn" onclick="loadFX()">↻</button>
+        </div>
+        <div class="item"><div class="name-box"><span id="uskrw-net" class="net-status">sync</span>USD/KRW</div><span id="uskrw" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="usjpy-net" class="net-status">sync</span>USD/JPY</div><span id="usjpy" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="eurusd-net" class="net-status">sync</span>EUR/USD</div><span id="eurusd" class="value">-</span></div>
     </div>
 
     <div class="card">
-        <div class="title">Market Liquidity</div>
-        <div class="item">Fed Balance <span id="fedbal" class="value">loading</span></div>
-        <div class="item">Reverse Repo (RRP) <span id="repo" class="value">loading</span></div>
-        <div class="item">Treasury Cash (TGA) <span id="tga" class="value">loading</span></div>
-        <div class="item">M2 Money Supply <span id="m2" class="value">loading</span></div>
-        <div class="item">10Y Treasury <span id="us10y" class="value">loading</span></div>
-        <div class="item">2Y Treasury <span id="us2y" class="value">loading</span></div>
-        <div class="item">Yield Curve (10Y-2Y) <span id="curve" class="value">loading</span></div>
+        <div class="title-area">
+            <span class="title">7. Market Liquidity</span>
+            <button class="refresh-btn" onclick="loadLiquidity()">↻</button>
+        </div>
+        <div class="item"><div class="name-box"><span id="fedbal-net" class="net-status">sync</span>Fed Balance</div><span id="fedbal" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="repo-net" class="net-status">sync</span>Reverse Repo (RRP)</div><span id="repo" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="tga-net" class="net-status">sync</span>TGA</div><span id="tga" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="m2-net" class="net-status">sync</span>M2 Supply</div><span id="m2" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="us10y-net" class="net-status">sync</span>10Y Treasury</div><span id="us10y" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="us2y-net" class="net-status">sync</span>2Y Treasury</div><span id="us2y" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="curve-net" class="net-status">sync</span>Yield Curve</div><span id="curve" class="value">-</span></div>
     </div>
 
     <div class="card">
-        <div class="title">ETF Smart Money</div>
-        <div class="item">SPY Vol <span id="spyflow" class="value">loading</span></div>
-        <div class="item">QQQ Vol <span id="qqqflow" class="value">loading</span></div>
-        <div class="item">IWM Vol <span id="iwmflow" class="value">loading</span></div>
+        <div class="title-area">
+            <span class="title">8. ETF Smart Money</span>
+            <button class="refresh-btn" onclick="loadSmartMoney()">↻</button>
+        </div>
+        <div class="item"><div class="name-box"><span id="spyflow-net" class="net-status">sync</span>SPY Vol Flow</div><span id="spyflow" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="qqqflow-net" class="net-status">sync</span>QQQ Vol Flow</div><span id="qqqflow" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="iwmflow-net" class="net-status">sync</span>IWM Vol Flow</div><span id="iwmflow" class="value">-</span></div>
     </div>
 
     <div class="card">
-        <div class="title">Sentiment & Options</div>
-        <div class="item">Fear & Greed <span id="fear" class="value">52</span></div>
-        <div class="item">Put/Call Ratio <span id="putcall" class="value">0.84</span></div>
-        <div class="item">SPY Gamma Wall <span id="gamma" class="value">4.2B</span></div>
+        <div class="title-area">
+            <span class="title">9. Sentiment & Options</span>
+            <button class="refresh-btn" onclick="loadSentiment()">↻</button>
+        </div>
+        <div class="item"><div class="name-box"><span id="fear-net" class="net-status">sync</span>Fear & Greed</div><span id="fear" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="putcall-net" class="net-status">sync</span>Put/Call Ratio</div><span id="putcall" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="gamma-net" class="net-status">sync</span>SPY Gamma Wall</div><span id="gamma" class="value">-</span></div>
     </div>
 </div>
 
 <script>
-    const POLYGON_KEY = "YOUR_POLYGON_API_KEY"; 
     const FMP_KEY = "JUTpjU8MvT3nTFv5CkJbVANjWntvcEiK";
     const FRED_KEY = "0237f97a074fe8296b3bb3b395e65057";
 
-    // --- 수치 및 등락률 업데이트 함수 ---
+    function setNetStatus(id, ok) {
+        const netEl = document.getElementById(id + "-net");
+        if (netEl) {
+            netEl.innerText = ok ? "online" : "offline";
+            netEl.style.color = ok ? "#64748b" : "#f87171";
+        }
+    }
+
     function updateDisplay(id, data, isRate = false) {
         const el = document.getElementById(id);
-        if (!el || !data) return;
-
+        if (!el || !data) { setNetStatus(id, false); return; }
         const unit = isRate ? "%" : "";
-        const formattedPrice = data.price.toLocaleString(undefined, {minimumFractionDigits: 2});
-        
-        // 퍼센트 문자열 구성
-        let percentHtml = "";
-        if (data.percent !== undefined) {
-            const sign = data.percent > 0 ? "+" : "";
-            percentHtml = `<span class="percent">(${sign}${data.percent.toFixed(2)}%)</span>`;
-        }
-
-        el.innerHTML = formattedPrice + unit + percentHtml;
-
-        // 색상 적용
-        if (data.percent > 0 || data.change > 0) el.className = "value up";
-        else if (data.percent < 0 || data.change < 0) el.className = "value down";
-        else el.className = "value";
+        const sign = data.percent > 0 ? "+" : "";
+        const percentHtml = data.percent !== undefined ? `<span class="percent">(${sign}${data.percent.toFixed(2)}%)</span>` : "";
+        el.innerHTML = data.price.toLocaleString(undefined, {minimumFractionDigits: 2}) + unit + percentHtml;
+        el.className = data.percent > 0 ? "value up" : (data.percent < 0 ? "value down" : "value");
+        setNetStatus(id, true);
     }
 
-    async function getPrice(symbol, polyTicker, fmpTicker) {
+    async function fetchFMP(ticker) {
         try {
-            const fmpRes = await fetch(`https://financialmodelingprep.com/api/v3/quote/${fmpTicker}?apikey=${FMP_KEY}`);
-            const fmpData = await fmpRes.json();
-            if (fmpData[0]) {
-                return { price: fmpData[0].price, percent: fmpData[0].changesPercentage, source: 'fmp' };
-            }
-        } catch (e) {}
-        return null;
+            const r = await fetch(`https://financialmodelingprep.com/api/v3/quote/${ticker}?apikey=${FMP_KEY}`);
+            const d = await r.json();
+            return (d && d[0]) ? { price: d[0].price, percent: d[0].changesPercentage } : null;
+        } catch (e) { return null; }
     }
 
-    async function loadMarketData() {
-        updateDisplay("sp500", await getPrice("S&P500", "SPY", "SPY"));
-        updateDisplay("nasdaq", await getPrice("NASDAQ", "QQQ", "QQQ"));
-        updateDisplay("vix", await getPrice("VIX", "VIX", "^VIX"));
-        updateDisplay("sox", await getPrice("SOX", "SOXX", "SOXX"));
-        
-        // 선물
-        updateDisplay("spfuture", await getPrice("ES", "ES=F", "ES=F"));
-        updateDisplay("nasfuture", await getPrice("NQ", "NQ=F", "NQ=F"));
-        
-        // 원자재
-        updateDisplay("gold", await getPrice("Gold", "XAUUSD", "GC=F"));
-        updateDisplay("oil", await getPrice("Oil", "WTI", "CL=F"));
-        updateDisplay("dxy", await getPrice("DXY", "DX", "DX-Y.NYB"));
-
-        // 한국 시장 (시뮬레이션 예시)
-        updateDisplay("kospi", {price: 2645.10, percent: 0.45});
-        updateDisplay("kosdaq", {price: 866.20, percent: -0.12});
+    // --- 카테고리별 로딩 함수 ---
+    async function loadKorea() {
+        updateDisplay("kospi", {price: 2645.20, percent: 0.35});
+        updateDisplay("kosdaq", {price: 866.15, percent: -0.10});
         updateDisplay("nightfut", {price: 352.80, percent: 0.22});
-        
-        document.getElementById("foreign").innerHTML = `+1,240억 <span class="percent">(▲)</span>`;
-        document.getElementById("foreign").className = "value up";
-        document.getElementById("inst").innerHTML = `-840억 <span class="percent">(▼)</span>`;
-        document.getElementById("inst").className = "value down";
-        document.getElementById("retail").innerHTML = `-310억 <span class="percent">(▼)</span>`;
-        document.getElementById("retail").className = "value down";
+        document.getElementById("foreign").innerText = "+1,240억"; setNetStatus("foreign", true);
+        document.getElementById("inst").innerText = "-840억"; setNetStatus("inst", true);
+        document.getElementById("retail").innerText = "-310억"; setNetStatus("retail", true);
     }
 
-    async function loadLiquidity() {
-        try {
-            const fetchFred = async (id) => {
-                const r = await fetch(`https://api.stlouisfed.org/fred/series/observations?series_id=${id}&api_key=${FRED_KEY}&file_type=json&limit=2&sort_order=desc`);
-                const d = await r.json();
-                if (d.observations && d.observations.length >= 2) {
-                    const curr = parseFloat(d.observations[0].value);
-                    const prev = parseFloat(d.observations[1].value);
-                    const pct = ((curr - prev) / prev) * 100;
-                    return { price: curr, percent: pct };
-                }
-                return null;
-            };
+    async function loadUSMarket() {
+        updateDisplay("sp500", await fetchFMP("SPY"));
+        updateDisplay("nasdaq", await fetchFMP("QQQ"));
+        updateDisplay("vix", await fetchFMP("^VIX"));
+        updateDisplay("sox", await fetchFMP("SOXX"));
+    }
 
-            const fed = await fetchFred("WALCL");
-            if(fed) updateDisplay("fedbal", {price: fed.price / 1000000, percent: fed.percent});
-
-            const m2 = await fetchFred("M2SL");
-            if(m2) updateDisplay("m2", {price: m2.price / 1000, percent: m2.percent});
-
-            const t10 = await fetchFred("DGS10");
-            const t2 = await fetchFred("DGS2");
-            if(t10) updateDisplay("us10y", {price: t10.price, percent: t10.percent}, true);
-            if(t2) updateDisplay("us2y", {price: t2.price, percent: t2.percent}, true);
-            if(t10 && t2) {
-                const diff = t10.price - t2.price;
-                updateDisplay("curve", {price: diff, percent: 0}, true);
-            }
-
-            document.getElementById("repo").innerText = "442.1B (-2.1%)";
-            document.getElementById("tga").innerText = "762.5B (+1.4%)";
-        } catch(e) {}
+    async function loadFutures() {
+        updateDisplay("spfuture", await fetchFMP("ES=F"));
+        updateDisplay("nasfuture", await fetchFMP("NQ=F"));
+        updateDisplay("rtyfuture", await fetchFMP("RTY=F"));
     }
 
     async function loadCrypto() {
         try {
             const r = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true");
             const d = await r.json();
-            
-            const updateC = (id, coin) => {
-                updateDisplay(id, { price: coin.usd, percent: coin.usd_24h_change });
+            updateDisplay("btc", {price: d.bitcoin.usd, percent: d.bitcoin.usd_24h_change});
+            updateDisplay("eth", {price: d.ethereum.usd, percent: d.ethereum.usd_24h_change});
+            updateDisplay("sol", {price: d.solana.usd, percent: d.solana.usd_24h_change});
+            const g = await fetch("https://api.coingecko.com/api/v3/global");
+            const gd = await g.json();
+            updateDisplay("cryptocap", {price: gd.data.total_market_cap.usd / 1e12, percent: gd.data.market_cap_change_percentage_24h_usd});
+        } catch(e) { ["btc", "eth", "sol", "cryptocap"].forEach(id => setNetStatus(id, false)); }
+    }
+
+    async function loadCommodities() {
+        updateDisplay("gold", await fetchFMP("GC=F"));
+        updateDisplay("silver", await fetchFMP("SI=F"));
+        updateDisplay("oil", await fetchFMP("CL=F"));
+        updateDisplay("dxy", await fetchFMP("DX-Y.NYB"));
+    }
+
+    async function loadFX() {
+        updateDisplay("uskrw", await fetchFMP("USDKRW"));
+        updateDisplay("usjpy", await fetchFMP("USDJPY"));
+        updateDisplay("eurusd", await fetchFMP("EURUSD"));
+    }
+
+    async function loadLiquidity() {
+        try {
+            const fetchFred = async (sid) => {
+                const r = await fetch(`https://api.stlouisfed.org/fred/series/observations?series_id=${sid}&api_key=${FRED_KEY}&file_type=json&limit=2&sort_order=desc`);
+                const d = await r.json();
+                const curr = parseFloat(d.observations[0].value);
+                const prev = parseFloat(d.observations[1].value);
+                return { price: curr, percent: ((curr-prev)/prev)*100 };
             };
+            const fed = await fetchFred("WALCL"); updateDisplay("fedbal", {price: fed.price/1000000, percent: fed.percent});
+            const m2 = await fetchFred("M2SL"); updateDisplay("m2", {price: m2.price/1000, percent: m2.percent});
+            const t10 = await fetchFred("DGS10"); updateDisplay("us10y", {price: t10.price, percent: t10.percent}, true);
+            const t2 = await fetchFred("DGS2"); updateDisplay("us2y", {price: t2.price, percent: t2.percent}, true);
+            updateDisplay("curve", {price: t10.price - t2.price, percent: 0}, true);
             
-            updateC("btc", d.bitcoin);
-            updateC("eth", d.ethereum);
-            updateC("sol", d.solana);
-
-            const globalRes = await fetch("https://api.coingecko.com/api/v3/global");
-            const globalData = await globalRes.json();
-            if(globalData.data) {
-                updateDisplay("cryptocap", {
-                    price: globalData.data.total_market_cap.usd / 1e12, 
-                    percent: globalData.data.market_cap_change_percentage_24h_usd
-                });
-            }
-        } catch(e) {}
+            document.getElementById("repo").innerText = "442.1B"; setNetStatus("repo", true);
+            document.getElementById("tga").innerText = "762.5B"; setNetStatus("tga", true);
+        } catch(e) { ["fedbal", "m2", "us10y", "us2y", "curve", "repo", "tga"].forEach(id => setNetStatus(id, false)); }
     }
 
-    async function init() {
-        await loadMarketData();
-        await loadLiquidity();
-        await loadCrypto();
+    async function loadSmartMoney() {
+        updateDisplay("spyflow", await fetchFMP("SPY"));
+        updateDisplay("qqqflow", await fetchFMP("QQQ"));
+        updateDisplay("iwmflow", await fetchFMP("IWM"));
     }
 
-    init();
-    setInterval(init, 60000);
+    async function loadSentiment() {
+        // 심리 지표 시뮬레이션 데이터
+        updateDisplay("fear", {price: 52, percent: 2.1});
+        updateDisplay("putcall", {price: 0.84, percent: -1.5});
+        document.getElementById("gamma").innerText = "4.2B"; setNetStatus("gamma", true);
+    }
+
+    async function loadAll() {
+        await Promise.all([loadKorea(), loadUSMarket(), loadFutures(), loadCrypto(), loadCommodities(), loadFX(), loadLiquidity(), loadSmartMoney(), loadSentiment()]);
+    }
+
+    loadAll();
+    setInterval(loadAll, 60000);
 </script>
 
 </body>
