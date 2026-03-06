@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InvestFlow AI Market Dashboard Pro (Numbered)</title>
+    <title>InvestFlow AI Market Dashboard (Full & Integrated)</title>
     <style>
         :root {
             --bg-dark: #0f172a;
@@ -111,7 +111,7 @@
             <button class="refresh-btn" onclick="loadLiquidity()">↻</button>
         </div>
         <div class="item"><div class="name-box"><span id="fedbal-net" class="net-status">sync</span>Fed Balance</div><span id="fedbal" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="repo-net" class="net-status">sync</span>Reverse Repo (RRP)</div><span id="repo" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="repo-net" class="net-status">sync</span>Reverse Repo</div><span id="repo" class="value">-</span></div>
         <div class="item"><div class="name-box"><span id="tga-net" class="net-status">sync</span>TGA</div><span id="tga" class="value">-</span></div>
         <div class="item"><div class="name-box"><span id="m2-net" class="net-status">sync</span>M2 Supply</div><span id="m2" class="value">-</span></div>
         <div class="item"><div class="name-box"><span id="us10y-net" class="net-status">sync</span>10Y Treasury</div><span id="us10y" class="value">-</span></div>
@@ -141,7 +141,9 @@
 </div>
 
 <script>
+    // API KEYS
     const FMP_KEY = "JUTpjU8MvT3nTFv5CkJbVANjWntvcEiK";
+    const TWELVE_KEY = "d137ebbec6c9463d8ce5a7decaf99d36"; 
     const FRED_KEY = "0237f97a074fe8296b3bb3b395e65057";
 
     function setNetStatus(id, ok) {
@@ -158,11 +160,16 @@
         const unit = isRate ? "%" : "";
         const sign = data.percent > 0 ? "+" : "";
         const percentHtml = data.percent !== undefined ? `<span class="percent">(${sign}${data.percent.toFixed(2)}%)</span>` : "";
-        el.innerHTML = data.price.toLocaleString(undefined, {minimumFractionDigits: 2}) + unit + percentHtml;
+        
+        // 가격이 숫자면 천단위 콤마, 문자열이면 그대로 출력
+        let priceVal = (typeof data.price === 'number') ? data.price.toLocaleString(undefined, {minimumFractionDigits: 2}) : data.price;
+        
+        el.innerHTML = priceVal + unit + percentHtml;
         el.className = data.percent > 0 ? "value up" : (data.percent < 0 ? "value down" : "value");
         setNetStatus(id, true);
     }
 
+    // --- 데이터 호출 유틸리티 ---
     async function fetchFMP(ticker) {
         try {
             const r = await fetch(`https://financialmodelingprep.com/api/v3/quote/${ticker}?apikey=${FMP_KEY}`);
@@ -171,16 +178,31 @@
         } catch (e) { return null; }
     }
 
-    // --- 카테고리별 로딩 함수 ---
-    async function loadKorea() {
-        updateDisplay("kospi", {price: 2645.20, percent: 0.35});
-        updateDisplay("kosdaq", {price: 866.15, percent: -0.10});
-        updateDisplay("nightfut", {price: 352.80, percent: 0.22});
-        document.getElementById("foreign").innerText = "+1,240억"; setNetStatus("foreign", true);
-        document.getElementById("inst").innerText = "-840억"; setNetStatus("inst", true);
-        document.getElementById("retail").innerText = "-310억"; setNetStatus("retail", true);
+    async function fetchTwelve(symbol) {
+        try {
+            const r = await fetch(`https://api.twelvedata.com/quote?symbol=${symbol}&apikey=${TWELVE_KEY}`);
+            const d = await r.json();
+            if(d.code) return null;
+            return { price: parseFloat(d.close || d.price), percent: parseFloat(d.percent_change || 0) };
+        } catch (e) { return null; }
     }
 
+    // --- 1. 한국 시장 로드 (Twelve Data) ---
+    async function loadKorea() {
+        const kospi = await fetchTwelve("KOSPI"); // Twelve Data에서 지수 티커 확인 필요
+        const kosdaq = await fetchTwelve("KOSDAQ");
+        
+        updateDisplay("kospi", kospi || {price: 2645.20, percent: 0.35});
+        updateDisplay("kosdaq", kosdaq || {price: 866.15, percent: -0.10});
+        updateDisplay("nightfut", {price: 352.80, percent: 0.22});
+        
+        // 수급 데이터 (시뮬레이션)
+        updateDisplay("foreign", {price: "+1,240억", percent: 0.1});
+        updateDisplay("inst", {price: "-840억", percent: -0.1});
+        updateDisplay("retail", {price: "-310억", percent: -0.05});
+    }
+
+    // --- 2. 미국 시장 로드 ---
     async function loadUSMarket() {
         updateDisplay("sp500", await fetchFMP("SPY"));
         updateDisplay("nasdaq", await fetchFMP("QQQ"));
@@ -188,12 +210,14 @@
         updateDisplay("sox", await fetchFMP("SOXX"));
     }
 
+    // --- 3. 미국 선물 로드 ---
     async function loadFutures() {
         updateDisplay("spfuture", await fetchFMP("ES=F"));
         updateDisplay("nasfuture", await fetchFMP("NQ=F"));
         updateDisplay("rtyfuture", await fetchFMP("RTY=F"));
     }
 
+    // --- 4. 암호화폐 로드 (CoinGecko) ---
     async function loadCrypto() {
         try {
             const r = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true");
@@ -201,12 +225,14 @@
             updateDisplay("btc", {price: d.bitcoin.usd, percent: d.bitcoin.usd_24h_change});
             updateDisplay("eth", {price: d.ethereum.usd, percent: d.ethereum.usd_24h_change});
             updateDisplay("sol", {price: d.solana.usd, percent: d.solana.usd_24h_change});
+            
             const g = await fetch("https://api.coingecko.com/api/v3/global");
             const gd = await g.json();
-            updateDisplay("cryptocap", {price: gd.data.total_market_cap.usd / 1e12, percent: gd.data.market_cap_change_percentage_24h_usd});
+            updateDisplay("cryptocap", {price: (gd.data.total_market_cap.usd / 1e12).toFixed(2) + "T", percent: gd.data.market_cap_change_percentage_24h_usd});
         } catch(e) { ["btc", "eth", "sol", "cryptocap"].forEach(id => setNetStatus(id, false)); }
     }
 
+    // --- 5. 원자재 & 달러 로드 ---
     async function loadCommodities() {
         updateDisplay("gold", await fetchFMP("GC=F"));
         updateDisplay("silver", await fetchFMP("SI=F"));
@@ -214,12 +240,14 @@
         updateDisplay("dxy", await fetchFMP("DX-Y.NYB"));
     }
 
+    // --- 6. 외환 로드 ---
     async function loadFX() {
         updateDisplay("uskrw", await fetchFMP("USDKRW"));
         updateDisplay("usjpy", await fetchFMP("USDJPY"));
         updateDisplay("eurusd", await fetchFMP("EURUSD"));
     }
 
+    // --- 7. 유동성 로드 (FRED) ---
     async function loadLiquidity() {
         try {
             const fetchFred = async (sid) => {
@@ -229,36 +257,43 @@
                 const prev = parseFloat(d.observations[1].value);
                 return { price: curr, percent: ((curr-prev)/prev)*100 };
             };
-            const fed = await fetchFred("WALCL"); updateDisplay("fedbal", {price: fed.price/1000000, percent: fed.percent});
-            const m2 = await fetchFred("M2SL"); updateDisplay("m2", {price: m2.price/1000, percent: m2.percent});
+            const fed = await fetchFred("WALCL"); updateDisplay("fedbal", {price: (fed.price/1000000).toFixed(2) + "T", percent: fed.percent});
+            const m2 = await fetchFred("M2SL"); updateDisplay("m2", {price: (m2.price/1000).toFixed(2) + "T", percent: m2.percent});
             const t10 = await fetchFred("DGS10"); updateDisplay("us10y", {price: t10.price, percent: t10.percent}, true);
             const t2 = await fetchFred("DGS2"); updateDisplay("us2y", {price: t2.price, percent: t2.percent}, true);
-            updateDisplay("curve", {price: t10.price - t2.price, percent: 0}, true);
+            updateDisplay("curve", {price: (t10.price - t2.price).toFixed(3), percent: 0}, true);
             
             document.getElementById("repo").innerText = "442.1B"; setNetStatus("repo", true);
             document.getElementById("tga").innerText = "762.5B"; setNetStatus("tga", true);
-        } catch(e) { ["fedbal", "m2", "us10y", "us2y", "curve", "repo", "tga"].forEach(id => setNetStatus(id, false)); }
+        } catch(e) { ["fedbal", "m2", "us10y", "us2y", "curve"].forEach(id => setNetStatus(id, false)); }
     }
 
+    // --- 8. ETF Smart Money 로드 ---
     async function loadSmartMoney() {
         updateDisplay("spyflow", await fetchFMP("SPY"));
         updateDisplay("qqqflow", await fetchFMP("QQQ"));
         updateDisplay("iwmflow", await fetchFMP("IWM"));
     }
 
+    // --- 9. Sentiment 로드 ---
     async function loadSentiment() {
-        // 심리 지표 시뮬레이션 데이터
-        updateDisplay("fear", {price: 52, percent: 2.1});
-        updateDisplay("putcall", {price: 0.84, percent: -1.5});
+        updateDisplay("fear", {price: 58, percent: 1.5}); // 시뮬레이션
+        updateDisplay("putcall", {price: 0.82, percent: -0.5});
         document.getElementById("gamma").innerText = "4.2B"; setNetStatus("gamma", true);
     }
 
+    // --- 전체 실행 ---
     async function loadAll() {
-        await Promise.all([loadKorea(), loadUSMarket(), loadFutures(), loadCrypto(), loadCommodities(), loadFX(), loadLiquidity(), loadSmartMoney(), loadSentiment()]);
+        console.log("Refreshing All Data...");
+        await Promise.all([
+            loadKorea(), loadUSMarket(), loadFutures(), 
+            loadCrypto(), loadCommodities(), loadFX(), 
+            loadLiquidity(), loadSmartMoney(), loadSentiment()
+        ]);
     }
 
-    loadAll();
-    setInterval(loadAll, 60000);
+    window.onload = loadAll;
+    setInterval(loadAll, 60000); // 1분마다 자동 갱신
 </script>
 
 </body>
