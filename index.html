@@ -141,160 +141,119 @@
 </div>
 
 <script>
-    // API KEYS
-    const FMP_KEY = "JUTpjU8MvT3nTFv5CkJbVANjWntvcEiK";
-    const TWELVE_KEY = "d137ebbec6c9463d8ce5a7decaf99d36"; 
-    const FRED_KEY = "0237f97a074fe8296b3bb3b395e65057";
 
-    function setNetStatus(id, ok) {
-        const netEl = document.getElementById(id + "-net");
-        if (netEl) {
-            netEl.innerText = ok ? "online" : "offline";
-            netEl.style.color = ok ? "#64748b" : "#f87171";
-        }
-    }
+const FMP_KEY="YOUR_FMP_KEY"
+const FRED_KEY="YOUR_FRED_KEY"
 
-    function updateDisplay(id, data, isRate = false) {
-        const el = document.getElementById(id);
-        if (!el || !data) { setNetStatus(id, false); return; }
-        const unit = isRate ? "%" : "";
-        const sign = data.percent > 0 ? "+" : "";
-        const percentHtml = data.percent !== undefined ? `<span class="percent">(${sign}${data.percent.toFixed(2)}%)</span>` : "";
-        
-        // 가격이 숫자면 천단위 콤마, 문자열이면 그대로 출력
-        let priceVal = (typeof data.price === 'number') ? data.price.toLocaleString(undefined, {minimumFractionDigits: 2}) : data.price;
-        
-        el.innerHTML = priceVal + unit + percentHtml;
-        el.className = data.percent > 0 ? "value up" : (data.percent < 0 ? "value down" : "value");
-        setNetStatus(id, true);
-    }
+async function fetchFMP(symbol){
 
-    // --- 데이터 호출 유틸리티 ---
-    async function fetchFMP(ticker) {
-        try {
-            const r = await fetch(`https://financialmodelingprep.com/api/v3/quote/${ticker}?apikey=${FMP_KEY}`);
-            const d = await r.json();
-            return (d && d[0]) ? { price: d[0].price, percent: d[0].changesPercentage } : null;
-        } catch (e) { return null; }
-    }
+try{
 
-    async function fetchTwelve(symbol) {
-        try {
-            const r = await fetch(`https://api.twelvedata.com/quote?symbol=${symbol}&apikey=${TWELVE_KEY}`);
-            const d = await r.json();
-            if(d.code) return null;
-            return { price: parseFloat(d.close || d.price), percent: parseFloat(d.percent_change || 0) };
-        } catch (e) { return null; }
-    }
+const r=await fetch(`https://financialmodelingprep.com/api/v3/quote/${symbol}?apikey=${FMP_KEY}`)
+const j=await r.json()
 
-    // --- 1. 한국 시장 로드 (Twelve Data) ---
-    async function loadKorea() {
-        const kospi = await fetchTwelve("KOSPI"); // Twelve Data에서 지수 티커 확인 필요
-        const kosdaq = await fetchTwelve("KOSDAQ");
-        
-        updateDisplay("kospi", kospi || {price: 2645.20, percent: 0.35});
-        updateDisplay("kosdaq", kosdaq || {price: 866.15, percent: -0.10});
-        updateDisplay("nightfut", {price: 352.80, percent: 0.22});
-        
-        // 수급 데이터 (시뮬레이션)
-        updateDisplay("foreign", {price: "+1,240억", percent: 0.1});
-        updateDisplay("inst", {price: "-840억", percent: -0.1});
-        updateDisplay("retail", {price: "-310억", percent: -0.05});
-    }
+if(j && j[0] && j[0].price) return j[0].price
 
-    // --- 2. 미국 시장 로드 ---
-    async function loadUSMarket() {
-        updateDisplay("sp500", await fetchFMP("SPY"));
-        updateDisplay("nasdaq", await fetchFMP("QQQ"));
-        updateDisplay("vix", await fetchFMP("^VIX"));
-        updateDisplay("sox", await fetchFMP("SOXX"));
-    }
+}catch(e){}
 
-    // --- 3. 미국 선물 로드 ---
-    async function loadFutures() {
-        updateDisplay("spfuture", await fetchFMP("ES=F"));
-        updateDisplay("nasfuture", await fetchFMP("NQ=F"));
-        updateDisplay("rtyfuture", await fetchFMP("RTY=F"));
-    }
+return null
+}
 
-    // --- 4. 암호화폐 로드 (CoinGecko) ---
-    async function loadCrypto() {
-        try {
-            const r = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true");
-            const d = await r.json();
-            updateDisplay("btc", {price: d.bitcoin.usd, percent: d.bitcoin.usd_24h_change});
-            updateDisplay("eth", {price: d.ethereum.usd, percent: d.ethereum.usd_24h_change});
-            updateDisplay("sol", {price: d.solana.usd, percent: d.solana.usd_24h_change});
-            
-            const g = await fetch("https://api.coingecko.com/api/v3/global");
-            const gd = await g.json();
-            updateDisplay("cryptocap", {price: (gd.data.total_market_cap.usd / 1e12).toFixed(2) + "T", percent: gd.data.market_cap_change_percentage_24h_usd});
-        } catch(e) { ["btc", "eth", "sol", "cryptocap"].forEach(id => setNetStatus(id, false)); }
-    }
+async function fetchYahoo(symbol){
 
-    // --- 5. 원자재 & 달러 로드 ---
-    async function loadCommodities() {
-        updateDisplay("gold", await fetchFMP("GC=F"));
-        updateDisplay("silver", await fetchFMP("SI=F"));
-        updateDisplay("oil", await fetchFMP("CL=F"));
-        updateDisplay("dxy", await fetchFMP("DX-Y.NYB"));
-    }
+try{
 
-    // --- 6. 외환 로드 ---
-    async function loadFX() {
-        updateDisplay("uskrw", await fetchFMP("USDKRW"));
-        updateDisplay("usjpy", await fetchFMP("USDJPY"));
-        updateDisplay("eurusd", await fetchFMP("EURUSD"));
-    }
+const r=await fetch(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}`)
+const j=await r.json()
 
-    // --- 7. 유동성 로드 (FRED) ---
-    async function loadLiquidity() {
-        try {
-            const fetchFred = async (sid) => {
-                const r = await fetch(`https://api.stlouisfed.org/fred/series/observations?series_id=${sid}&api_key=${FRED_KEY}&file_type=json&limit=2&sort_order=desc`);
-                const d = await r.json();
-                const curr = parseFloat(d.observations[0].value);
-                const prev = parseFloat(d.observations[1].value);
-                return { price: curr, percent: ((curr-prev)/prev)*100 };
-            };
-            const fed = await fetchFred("WALCL"); updateDisplay("fedbal", {price: (fed.price/1000000).toFixed(2) + "T", percent: fed.percent});
-            const m2 = await fetchFred("M2SL"); updateDisplay("m2", {price: (m2.price/1000).toFixed(2) + "T", percent: m2.percent});
-            const t10 = await fetchFred("DGS10"); updateDisplay("us10y", {price: t10.price, percent: t10.percent}, true);
-            const t2 = await fetchFred("DGS2"); updateDisplay("us2y", {price: t2.price, percent: t2.percent}, true);
-            updateDisplay("curve", {price: (t10.price - t2.price).toFixed(3), percent: 0}, true);
-            
-            document.getElementById("repo").innerText = "442.1B"; setNetStatus("repo", true);
-            document.getElementById("tga").innerText = "762.5B"; setNetStatus("tga", true);
-        } catch(e) { ["fedbal", "m2", "us10y", "us2y", "curve"].forEach(id => setNetStatus(id, false)); }
-    }
+return j.quoteResponse.result[0].regularMarketPrice
 
-    // --- 8. ETF Smart Money 로드 ---
-    async function loadSmartMoney() {
-        updateDisplay("spyflow", await fetchFMP("SPY"));
-        updateDisplay("qqqflow", await fetchFMP("QQQ"));
-        updateDisplay("iwmflow", await fetchFMP("IWM"));
-    }
+}catch(e){}
 
-    // --- 9. Sentiment 로드 ---
-    async function loadSentiment() {
-        updateDisplay("fear", {price: 58, percent: 1.5}); // 시뮬레이션
-        updateDisplay("putcall", {price: 0.82, percent: -0.5});
-        document.getElementById("gamma").innerText = "4.2B"; setNetStatus("gamma", true);
-    }
+return null
+}
 
-    // --- 전체 실행 ---
-    async function loadAll() {
-        console.log("Refreshing All Data...");
-        await Promise.all([
-            loadKorea(), loadUSMarket(), loadFutures(), 
-            loadCrypto(), loadCommodities(), loadFX(), 
-            loadLiquidity(), loadSmartMoney(), loadSentiment()
-        ]);
-    }
+async function getPrice(fmp,yahoo,id){
 
-    window.onload = loadAll;
-    setInterval(loadAll, 60000); // 1분마다 자동 갱신
+let v=await fetchFMP(fmp)
+
+if(v===null){
+v=await fetchYahoo(yahoo)
+}
+
+if(v!==null){
+document.getElementById(id).innerText=v.toFixed(2)
+}
+
+}
+
+async function getFRED(series,id){
+
+try{
+
+const r=await fetch(`https://api.stlouisfed.org/fred/series/observations?series_id=${series}&api_key=${FRED_KEY}&file_type=json&limit=1&sort_order=desc`)
+const j=await r.json()
+
+const v=j.observations[0].value
+
+if(v!="."){
+document.getElementById(id).innerText=parseFloat(v).toFixed(2)
+}
+
+}catch(e){}
+
+}
+
+async function getCrypto(id,coin){
+
+try{
+
+const r=await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coin}&vs_currencies=usd`)
+const j=await r.json()
+
+document.getElementById(id).innerText=j[coin].usd
+
+}catch(e){}
+
+}
+
+async function getFearGreed(){
+
+try{
+
+const r=await fetch("https://production.dataviz.cnn.io/index/fearandgreed/graphdata")
+const j=await r.json()
+
+document.getElementById("feargreed").innerText=j.fear_and_greed.now.value
+
+}catch(e){}
+
+}
+
+async function update(){
+
+getPrice("SPY","^GSPC","sp500")
+getPrice("QQQ","^IXIC","nasdaq")
+getPrice("DIA","^DJI","dow")
+getPrice("VIXY","^VIX","vix")
+
+getPrice("USO","CL=F","wti")
+getPrice("GLD","GC=F","gold")
+
+getPrice("USDKRW","KRW=X","usdk)
+
+getFRED("DGS10","us10y")
+getFRED("MOVE","move")
+
+getCrypto("btc","bitcoin")
+getCrypto("eth","ethereum")
+
+getFearGreed()
+
+}
+
+update()
+
+setInterval(update,60000)
+
 </script>
-
-</body>
-</html>
