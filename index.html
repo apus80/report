@@ -19,7 +19,7 @@
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
         .card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: 0.3s; }
         .card:hover { transform: translateY(-4px); }
-        
+       
         .title-area { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 8px; margin-bottom: 15px; }
         .title { font-size: 17px; color: var(--primary); font-weight: bold; margin: 0; }
         .refresh-btn { background: none; border: none; color: var(--status-dim); cursor: pointer; font-size: 18px; transition: 0.2s; padding: 0 5px; }
@@ -139,121 +139,105 @@
         <div class="item"><div class="name-box"><span id="gamma-net" class="net-status">sync</span>SPY Gamma Wall</div><span id="gamma" class="value">-</span></div>
     </div>
 </div>
-
 <script>
 
-const FMP_KEY="YOUR_FMP_KEY"
-const FRED_KEY="YOUR_FRED_KEY"
+const WORKER="https://fmp-proxy.aiinvestflow.workers.dev/?symbol="
 
-async function fetchFMP(symbol){
+async function fetchPrice(symbol){
 
 try{
 
-const r=await fetch(`https://financialmodelingprep.com/api/v3/quote/${symbol}?apikey=${FMP_KEY}`)
+const r=await fetch(WORKER+symbol)
 const j=await r.json()
 
-if(j && j[0] && j[0].price) return j[0].price
+if(j && j[0] && j[0].price){
+return j[0].price
+}
 
 }catch(e){}
 
 return null
 }
 
-async function fetchYahoo(symbol){
+async function setPrice(symbol,id){
 
-try{
-
-const r=await fetch(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}`)
-const j=await r.json()
-
-return j.quoteResponse.result[0].regularMarketPrice
-
-}catch(e){}
-
-return null
-}
-
-async function getPrice(fmp,yahoo,id){
-
-let v=await fetchFMP(fmp)
-
-if(v===null){
-v=await fetchYahoo(yahoo)
-}
+const v=await fetchPrice(symbol)
 
 if(v!==null){
-document.getElementById(id).innerText=v.toFixed(2)
+
+const el=document.getElementById(id)
+
+el.innerText=v.toFixed(2)
+
+if(el.classList.contains("up")||el.classList.contains("down")){
+el.classList.remove("up","down")
 }
 
 }
 
-async function getFRED(series,id){
+}
+
+async function loadUSMarket(){
+
+setPrice("SPY","sp500")
+setPrice("QQQ","nasdaq")
+setPrice("VIXY","vix")
+setPrice("SOXX","sox")
+
+}
+
+async function loadFutures(){
+
+setPrice("SPY","spfuture")
+setPrice("QQQ","nasfuture")
+setPrice("IWM","rtyfuture")
+
+}
+
+async function loadCommodities(){
+
+setPrice("GLD","gold")
+setPrice("SLV","silver")
+setPrice("USO","oil")
+setPrice("UUP","dxy")
+
+}
+
+async function loadFX(){
+
+setPrice("UUP","uskrw")
+setPrice("FXY","usjpy")
+setPrice("FXE","eurusd")
+
+}
+
+async function loadCrypto(){
 
 try{
 
-const r=await fetch(`https://api.stlouisfed.org/fred/series/observations?series_id=${series}&api_key=${FRED_KEY}&file_type=json&limit=1&sort_order=desc`)
+const r=await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd")
 const j=await r.json()
 
-const v=j.observations[0].value
-
-if(v!="."){
-document.getElementById(id).innerText=parseFloat(v).toFixed(2)
-}
+document.getElementById("btc").innerText=j.bitcoin.usd
+document.getElementById("eth").innerText=j.ethereum.usd
+document.getElementById("sol").innerText=j.solana.usd
 
 }catch(e){}
 
 }
 
-async function getCrypto(id,coin){
+async function loadAll(){
 
-try{
-
-const r=await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coin}&vs_currencies=usd`)
-const j=await r.json()
-
-document.getElementById(id).innerText=j[coin].usd
-
-}catch(e){}
+loadUSMarket()
+loadFutures()
+loadCommodities()
+loadFX()
+loadCrypto()
 
 }
 
-async function getFearGreed(){
+loadAll()
 
-try{
-
-const r=await fetch("https://production.dataviz.cnn.io/index/fearandgreed/graphdata")
-const j=await r.json()
-
-document.getElementById("feargreed").innerText=j.fear_and_greed.now.value
-
-}catch(e){}
-
-}
-
-async function update(){
-
-getPrice("SPY","^GSPC","sp500")
-getPrice("QQQ","^IXIC","nasdaq")
-getPrice("DIA","^DJI","dow")
-getPrice("VIXY","^VIX","vix")
-
-getPrice("USO","CL=F","wti")
-getPrice("GLD","GC=F","gold")
-
-getPrice("USDKRW","KRW=X","usdk)
-
-getFRED("DGS10","us10y")
-getFRED("MOVE","move")
-
-getCrypto("btc","bitcoin")
-getCrypto("eth","ethereum")
-
-getFearGreed()
-
-}
-
-update()
-
-setInterval(update,60000)
+setInterval(loadAll,60000)
 
 </script>
