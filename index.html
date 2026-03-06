@@ -139,205 +139,207 @@
         <div class="item"><div class="name-box"><span id="gamma-net" class="net-status">sync</span>SPY Gamma Wall</div><span id="gamma" class="value">-</span></div>
     </div>
 </div>
-<script>
+const FMP_KEY = "YOUR_FMP_KEY"
+const FRED_KEY = "5f6a050751729afcfabab471a6738a00"
 
-const WORKER="https://fmp-proxy.aiinvestflow.workers.dev/?symbol="
-const FRED="https://api.stlouisfed.org/fred/series/observations?api_key=5f6a050751729afcfabab471a6738a00&file_type=json&series_id="
+function setValue(id,value){
 
-async function fetchPrice(symbol){
+const el = document.getElementById(id)
+
+if(!el) return
+
+if(value === null || value === undefined || value === ""){
+
+el.innerText = "-"
+
+return
+}
+
+if(!isNaN(value))
+value = Number(value).toLocaleString(undefined,{maximumFractionDigits:2})
+
+el.innerText = value
+
+}
+
+async function fetchJSON(url){
 
 try{
 
-const r=await fetch(WORKER+symbol)
-const j=await r.json()
+const r = await fetch(url)
 
-if(j && j[0] && j[0].price){
-return j[0].price
-}
+if(!r.ok) throw new Error()
 
-}catch(e){}
+return await r.json()
+
+}catch(e){
 
 return null
+
+}
+
+}
+
+async function fetchPrice(symbol){
+
+// 1️⃣ FMP
+let data = await fetchJSON(
+`https://financialmodelingprep.com/api/v3/quote/${symbol}?apikey=${FMP_KEY}`
+)
+
+if(data && data[0] && data[0].price)
+return data[0].price
+
+// 2️⃣ Yahoo fallback
+data = await fetchJSON(
+`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}`
+)
+
+if(data && data.quoteResponse && data.quoteResponse.result[0])
+return data.quoteResponse.result[0].regularMarketPrice
+
+return null
+
 }
 
 async function setPrice(symbol,id){
 
-const v=await fetchPrice(symbol)
+const v = await fetchPrice(symbol)
 
-if(v!==null){
-
-const el=document.getElementById(id)
-
-el.innerText=v.toFixed(2)
-
-}else{
-
-document.getElementById(id).innerText="-"
+setValue(id,v)
 
 }
 
-}
-
-async function fetchYahoo(symbol,id){
-
-try{
-
-const url="https://query1.finance.yahoo.com/v7/finance/quote?symbols="+symbol
-
-const r=await fetch(url)
-const j=await r.json()
-
-const p=j.quoteResponse.result[0].regularMarketPrice
-
-document.getElementById(id).innerText=p.toFixed(2)
-
-}catch(e){
-
-document.getElementById(id).innerText="-"
-
-}
-
-}
-
-async function fetchFred(series,id){
-
-try{
-
-const r=await fetch(FRED+series)
-const j=await r.json()
-
-const data=j.observations
-const last=data[data.length-1].value
-
-document.getElementById(id).innerText=parseFloat(last).toLocaleString()
-
-}catch(e){
-
-document.getElementById(id).innerText="-"
-
-}
-
-}
-
-async function loadKorea(){
-
-fetchYahoo("^KS11","kospi")
-fetchYahoo("^KQ11","kosdaq")
-fetchYahoo("NQ=F","nightfut")
-
-}
+//
+// 미국 시장
+//
 
 async function loadUSMarket(){
 
 setPrice("SPY","sp500")
 setPrice("QQQ","nasdaq")
-setPrice("VIXY","vix")
-setPrice("SOXX","sox")
+setPrice("^VIX","vix")
+setPrice("^SOX","sox")
 
 }
+
+//
+// 선물
+//
 
 async function loadFutures(){
 
-setPrice("SPY","spfuture")
-setPrice("QQQ","nasfuture")
-setPrice("IWM","rtyfuture")
+setPrice("ES=F","spfuture")
+setPrice("NQ=F","nasfuture")
+setPrice("RTY=F","rtyfuture")
 
 }
+
+//
+// 원자재
+//
 
 async function loadCommodities(){
 
-setPrice("GLD","gold")
-setPrice("SLV","silver")
-setPrice("USO","oil")
-setPrice("UUP","dxy")
+setPrice("GC=F","gold")
+setPrice("SI=F","silver")
+setPrice("CL=F","oil")
+setPrice("DX-Y.NYB","dxy")
 
 }
+
+//
+// FX
+//
 
 async function loadFX(){
 
-setPrice("UUP","uskrw")
-setPrice("FXY","usjpy")
-setPrice("FXE","eurusd")
+setPrice("KRW=X","uskrw")
+setPrice("JPY=X","usjpy")
+setPrice("EURUSD=X","eurusd")
 
 }
+
+//
+// Crypto
+//
 
 async function loadCrypto(){
 
-try{
+let data = await fetchJSON(
+"https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd"
+)
 
-const r=await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd")
-const j=await r.json()
+if(data){
 
-document.getElementById("btc").innerText=j.bitcoin.usd
-document.getElementById("eth").innerText=j.ethereum.usd
-document.getElementById("sol").innerText=j.solana.usd
+setValue("btc",data.bitcoin.usd)
+setValue("eth",data.ethereum.usd)
+setValue("sol",data.solana.usd)
 
-}catch(e){
+}else{
 
-document.getElementById("btc").innerText="-"
-document.getElementById("eth").innerText="-"
-document.getElementById("sol").innerText="-"
+setValue("btc","-")
+setValue("eth","-")
+setValue("sol","-")
 
 }
 
 }
+
+//
+// FRED
+//
+
+async function loadFRED(series,id){
+
+const data = await fetchJSON(
+`https://api.stlouisfed.org/fred/series/observations?series_id=${series}&api_key=${FRED_KEY}&file_type=json`
+)
+
+if(data && data.observations){
+
+const last = data.observations[data.observations.length-1]
+
+setValue(id,last.value)
+
+}else{
+
+setValue(id,"-")
+
+}
+
+}
+
+//
+// Liquidity
+//
 
 async function loadLiquidity(){
 
-fetchFred("WALCL","fedbal")
-fetchFred("RRPONTSYD","repo")
-fetchFred("WTREGEN","tga")
-fetchFred("M2SL","m2")
-fetchFred("DGS10","us10y")
-fetchFred("DGS2","us2y")
+loadFRED("WALCL","fedbal")
+loadFRED("RRPONTSYD","repo")
+loadFRED("WTREGEN","tga")
+loadFRED("M2SL","m2")
+loadFRED("DGS10","us10y")
+loadFRED("DGS2","us2y")
 
 }
 
-async function loadSmartMoney(){
+//
+// 전체 로딩
+//
 
-document.getElementById("spyflow").innerText="-"
-document.getElementById("qqqflow").innerText="-"
-document.getElementById("iwmflow").innerText="-"
+function loadAll(){
 
-}
-
-async function loadSentiment(){
-
-try{
-
-const r=await fetch("https://production.dataviz.cnn.io/index/fearandgreed/graphdata")
-
-const j=await r.json()
-
-document.getElementById("fear").innerText=j.fear_and_greed.score
-
-}catch(e){
-
-document.getElementById("fear").innerText="-"
-
-}
-
-document.getElementById("putcall").innerText="-"
-document.getElementById("gamma").innerText="-"
-
-}
-
-async function loadAll(){
-
-loadKorea()
 loadUSMarket()
 loadFutures()
 loadCommodities()
 loadFX()
 loadCrypto()
 loadLiquidity()
-loadSmartMoney()
-loadSentiment()
 
 }
 
 loadAll()
 
 setInterval(loadAll,60000)
-
-</script>
