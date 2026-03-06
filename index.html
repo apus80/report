@@ -1,222 +1,243 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>Global Macro Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InvestFlow AI Market Dashboard (Full & Integrated)</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --primary: #38bdf8;
+            --up: #f87171;
+            --down: #60a5fa;
+            --text: #f8fafc;
+            --status-dim: #64748b;
+        }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-dark); color: var(--text); margin: 0; padding: 20px; }
+        h1 { text-align: center; margin-bottom: 30px; color: var(--primary); font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+        .card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: 0.3s; }
+        .card:hover { transform: translateY(-4px); }
+       
+        .title-area { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 8px; margin-bottom: 15px; }
+        .title { font-size: 17px; color: var(--primary); font-weight: bold; margin: 0; }
+        .refresh-btn { background: none; border: none; color: var(--status-dim); cursor: pointer; font-size: 18px; transition: 0.2s; padding: 0 5px; }
+        .refresh-btn:hover { color: var(--primary); transform: rotate(180deg); }
 
-<style>
-
-body{
-background:#081423;
-font-family:Arial;
-color:white;
-margin:0;
-padding:30px;
-}
-
-h1{
-text-align:center;
-margin-bottom:40px;
-}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:20px;
-}
-
-.card{
-background:#12263f;
-border-radius:12px;
-padding:20px;
-}
-
-.card h2{
-margin-top:0;
-font-size:18px;
-color:#3db7ff;
-}
-
-.row{
-display:flex;
-justify-content:space-between;
-padding:6px 0;
-border-bottom:1px solid rgba(255,255,255,0.05);
-}
-
-.value{
-font-weight:bold;
-}
-
-</style>
+        .item { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; font-size: 14px; }
+        .name-box { display: flex; align-items: baseline; }
+        .net-status { font-size: 9px; margin-right: 8px; color: var(--status-dim); text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; }
+        .value { font-weight: bold; font-family: 'Consolas', monospace; white-space: nowrap; }
+        .up { color: var(--up); }
+        .down { color: var(--down); }
+        .percent { font-size: 12px; margin-left: 5px; font-weight: normal; opacity: 0.8; }
+    </style>
 </head>
-
 <body>
 
-<h1>Global Macro Dashboard</h1>
+<h1>InvestFlow AI Market Dashboard</h1>
 
 <div class="grid">
+    <div class="card">
+        <div class="title-area">
+            <span class="title">1. 한국 시장</span>
+            <button class="refresh-btn" onclick="loadKorea()">↻</button>
+        </div>
+        <div class="item"><div class="name-box"><span id="kospi-net" class="net-status">sync</span>KOSPI</div><span id="kospi" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="kosdaq-net" class="net-status">sync</span>KOSDAQ</div><span id="kosdaq" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="nightfut-net" class="net-status">sync</span>야간선물</div><span id="nightfut" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="foreign-net" class="net-status">sync</span>외국인 수급</div><span id="foreign" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="inst-net" class="net-status">sync</span>기관 수급</div><span id="inst" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="retail-net" class="net-status">sync</span>개인 수급</div><span id="retail" class="value">-</span></div>
+    </div>
 
-<div class="card">
-<h2>한국 시장</h2>
-<div class="row"><span>KOSPI</span><span id="kospi" class="value">-</span></div>
-<div class="row"><span>KOSDAQ</span><span id="kosdaq" class="value">-</span></div>
+    <div class="card">
+        <div class="title-area">
+            <span class="title">2. 미국 시장</span>
+            <button class="refresh-btn" onclick="loadUSMarket()">↻</button>
+        </div>
+        <div class="item"><div class="name-box"><span id="sp500-net" class="net-status">sync</span>S&P500 (SPY)</div><span id="sp500" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="nasdaq-net" class="net-status">sync</span>NASDAQ (QQQ)</div><span id="nasdaq" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="vix-net" class="net-status">sync</span>VIX 지수</div><span id="vix" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="sox-net" class="net-status">sync</span>SOX (반도체)</div><span id="sox" class="value">-</span></div>
+    </div>
+
+    <div class="card">
+        <div class="title-area">
+            <span class="title">3. 미국 선물</span>
+            <button class="refresh-btn" onclick="loadFutures()">↻</button>
+        </div>
+        <div class="item"><div class="name-box"><span id="spfuture-net" class="net-status">sync</span>S&P500 Fut</div><span id="spfuture" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="nasfuture-net" class="net-status">sync</span>Nasdaq Fut</div><span id="nasfuture" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="rtyfuture-net" class="net-status">sync</span>Russel 2000 Fut</div><span id="rtyfuture" class="value">-</span></div>
+    </div>
+
+    <div class="card">
+        <div class="title-area">
+            <span class="title">4. 암호화폐</span>
+            <button class="refresh-btn" onclick="loadCrypto()">↻</button>
+        </div>
+        <div class="item"><div class="name-box"><span id="btc-net" class="net-status">sync</span>Bitcoin (BTC)</div><span id="btc" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="eth-net" class="net-status">sync</span>Ethereum (ETH)</div><span id="eth" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="sol-net" class="net-status">sync</span>Solana (SOL)</div><span id="sol" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="cryptocap-net" class="net-status">sync</span>Total Mkt Cap</div><span id="cryptocap" class="value">-</span></div>
+    </div>
+
+    <div class="card">
+        <div class="title-area">
+            <span class="title">5. 원자재 & 달러</span>
+            <button class="refresh-btn" onclick="loadCommodities()">↻</button>
+        </div>
+        <div class="item"><div class="name-box"><span id="gold-net" class="net-status">sync</span>Gold</div><span id="gold" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="silver-net" class="net-status">sync</span>Silver</div><span id="silver" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="oil-net" class="net-status">sync</span>Oil (WTI)</div><span id="oil" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="dxy-net" class="net-status">sync</span>Dollar Index</div><span id="dxy" class="value">-</span></div>
+    </div>
+
+    <div class="card">
+        <div class="title-area">
+            <span class="title">6. 외환 (FX)</span>
+            <button class="refresh-btn" onclick="loadFX()">↻</button>
+        </div>
+        <div class="item"><div class="name-box"><span id="uskrw-net" class="net-status">sync</span>USD/KRW</div><span id="uskrw" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="usjpy-net" class="net-status">sync</span>USD/JPY</div><span id="usjpy" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="eurusd-net" class="net-status">sync</span>EUR/USD</div><span id="eurusd" class="value">-</span></div>
+    </div>
+
+    <div class="card">
+        <div class="title-area">
+            <span class="title">7. Market Liquidity</span>
+            <button class="refresh-btn" onclick="loadLiquidity()">↻</button>
+        </div>
+        <div class="item"><div class="name-box"><span id="fedbal-net" class="net-status">sync</span>Fed Balance</div><span id="fedbal" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="repo-net" class="net-status">sync</span>Reverse Repo</div><span id="repo" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="tga-net" class="net-status">sync</span>TGA</div><span id="tga" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="m2-net" class="net-status">sync</span>M2 Supply</div><span id="m2" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="us10y-net" class="net-status">sync</span>10Y Treasury</div><span id="us10y" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="us2y-net" class="net-status">sync</span>2Y Treasury</div><span id="us2y" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="curve-net" class="net-status">sync</span>Yield Curve</div><span id="curve" class="value">-</span></div>
+    </div>
+
+    <div class="card">
+        <div class="title-area">
+            <span class="title">8. ETF Smart Money</span>
+            <button class="refresh-btn" onclick="loadSmartMoney()">↻</button>
+        </div>
+        <div class="item"><div class="name-box"><span id="spyflow-net" class="net-status">sync</span>SPY Vol Flow</div><span id="spyflow" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="qqqflow-net" class="net-status">sync</span>QQQ Vol Flow</div><span id="qqqflow" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="iwmflow-net" class="net-status">sync</span>IWM Vol Flow</div><span id="iwmflow" class="value">-</span></div>
+    </div>
+
+    <div class="card">
+        <div class="title-area">
+            <span class="title">9. Sentiment & Options</span>
+            <button class="refresh-btn" onclick="loadSentiment()">↻</button>
+        </div>
+        <div class="item"><div class="name-box"><span id="fear-net" class="net-status">sync</span>Fear & Greed</div><span id="fear" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="putcall-net" class="net-status">sync</span>Put/Call Ratio</div><span id="putcall" class="value">-</span></div>
+        <div class="item"><div class="name-box"><span id="gamma-net" class="net-status">sync</span>SPY Gamma Wall</div><span id="gamma" class="value">-</span></div>
+    </div>
 </div>
-
-<div class="card">
-<h2>미국 시장</h2>
-<div class="row"><span>S&P500</span><span id="spx" class="value">-</span></div>
-<div class="row"><span>NASDAQ</span><span id="qqq" class="value">-</span></div>
-<div class="row"><span>VIX</span><span id="vix" class="value">-</span></div>
-<div class="row"><span>SOX</span><span id="sox" class="value">-</span></div>
-</div>
-
-<div class="card">
-<h2>선물</h2>
-<div class="row"><span>S&P500 Fut</span><span id="es" class="value">-</span></div>
-<div class="row"><span>Nasdaq Fut</span><span id="nq" class="value">-</span></div>
-<div class="row"><span>Russell Fut</span><span id="rt" class="value">-</span></div>
-</div>
-
-<div class="card">
-<h2>Crypto</h2>
-<div class="row"><span>Bitcoin</span><span id="btc" class="value">-</span></div>
-<div class="row"><span>Ethereum</span><span id="eth" class="value">-</span></div>
-<div class="row"><span>Solana</span><span id="sol" class="value">-</span></div>
-</div>
-
-<div class="card">
-<h2>원자재</h2>
-<div class="row"><span>Gold</span><span id="gold" class="value">-</span></div>
-<div class="row"><span>Silver</span><span id="silver" class="value">-</span></div>
-<div class="row"><span>Oil</span><span id="oil" class="value">-</span></div>
-<div class="row"><span>DXY</span><span id="dxy" class="value">-</span></div>
-</div>
-
-<div class="card">
-<h2>FX</h2>
-<div class="row"><span>USD/KRW</span><span id="usdk" class="value">-</span></div>
-<div class="row"><span>USD/JPY</span><span id="usdj" class="value">-</span></div>
-<div class="row"><span>EUR/USD</span><span id="eur" class="value">-</span></div>
-</div>
-
-<div class="card">
-<h2>Liquidity</h2>
-<div class="row"><span>Fed Balance</span><span id="fed" class="value">-</span></div>
-<div class="row"><span>Reverse Repo</span><span id="rrp" class="value">-</span></div>
-<div class="row"><span>M2</span><span id="m2" class="value">-</span></div>
-<div class="row"><span>10Y</span><span id="y10" class="value">-</span></div>
-<div class="row"><span>2Y</span><span id="y2" class="value">-</span></div>
-</div>
-
-<div class="card">
-<h2>Sentiment</h2>
-<div class="row"><span>Fear & Greed</span><span id="fear" class="value">-</span></div>
-</div>
-
-</div>
-
 <script>
 
-const FRED_KEY="5f6a050751729afcfabab471a6738a00"
+const WORKER="https://fmp-proxy.aiinvestflow.workers.dev/?symbol="
 
-async function yahoo(id,symbol){
+async function fetchPrice(symbol){
 
 try{
 
-let r=await fetch(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}`)
-let d=await r.json()
-let p=d.quoteResponse.result[0].regularMarketPrice
+const r=await fetch(WORKER+symbol)
+const j=await r.json()
 
-document.getElementById(id).innerText=p.toFixed(2)
+if(j && j[0] && j[0].price){
+return j[0].price
+}
+
+}catch(e){}
+
+return null
+}
+
+async function setPrice(symbol,id){
+
+const v=await fetchPrice(symbol)
+
+if(v!==null){
+
+const el=document.getElementById(id)
+
+el.innerText=v.toFixed(2)
+
+if(el.classList.contains("up")||el.classList.contains("down")){
+el.classList.remove("up","down")
+}
+
+}
+
+}
+
+async function loadUSMarket(){
+
+setPrice("SPY","sp500")
+setPrice("QQQ","nasdaq")
+setPrice("VIXY","vix")
+setPrice("SOXX","sox")
+
+}
+
+async function loadFutures(){
+
+setPrice("SPY","spfuture")
+setPrice("QQQ","nasfuture")
+setPrice("IWM","rtyfuture")
+
+}
+
+async function loadCommodities(){
+
+setPrice("GLD","gold")
+setPrice("SLV","silver")
+setPrice("USO","oil")
+setPrice("UUP","dxy")
+
+}
+
+async function loadFX(){
+
+setPrice("UUP","uskrw")
+setPrice("FXY","usjpy")
+setPrice("FXE","eurusd")
+
+}
+
+async function loadCrypto(){
+
+try{
+
+const r=await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd")
+const j=await r.json()
+
+document.getElementById("btc").innerText=j.bitcoin.usd
+document.getElementById("eth").innerText=j.ethereum.usd
+document.getElementById("sol").innerText=j.solana.usd
 
 }catch(e){}
 
 }
 
-async function fred(id,series){
+async function loadAll(){
 
-try{
-
-let r=await fetch(`https://api.stlouisfed.org/fred/series/observations?series_id=${series}&api_key=${FRED_KEY}&file_type=json&sort_order=desc&limit=1`)
-let d=await r.json()
-
-let v=parseFloat(d.observations[0].value)
-
-document.getElementById(id).innerText=v.toLocaleString()
-
-}catch(e){}
+loadUSMarket()
+loadFutures()
+loadCommodities()
+loadFX()
+loadCrypto()
 
 }
 
-async function crypto(){
+loadAll()
 
-try{
-
-let r=await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd")
-let d=await r.json()
-
-btc.innerText=d.bitcoin.usd
-eth.innerText=d.ethereum.usd
-sol.innerText=d.solana.usd
-
-}catch(e){}
-
-}
-
-async function fear(){
-
-try{
-
-let r=await fetch("https://api.alternative.me/fng/")
-let d=await r.json()
-
-fear.innerText=d.data[0].value
-
-}catch(e){}
-
-}
-
-function load(){
-
-yahoo("kospi","^KS11")
-yahoo("kosdaq","^KQ11")
-
-yahoo("spx","SPY")
-yahoo("qqq","QQQ")
-yahoo("vix","^VIX")
-yahoo("sox","^SOX")
-
-yahoo("es","ES=F")
-yahoo("nq","NQ=F")
-yahoo("rt","RTY=F")
-
-yahoo("gold","GC=F")
-yahoo("silver","SI=F")
-yahoo("oil","CL=F")
-yahoo("dxy","DX-Y.NYB")
-
-yahoo("usdk","KRW=X")
-yahoo("usdj","JPY=X")
-yahoo("eur","EURUSD=X")
-
-crypto()
-
-fred("fed","WALCL")
-fred("rrp","RRPONTSYD")
-fred("m2","M2SL")
-fred("y10","DGS10")
-fred("y2","DGS2")
-
-fear()
-
-}
-
-load()
-
-setInterval(load,60000)
+setInterval(loadAll,60000)
 
 </script>
-
-</body>
-</html>
