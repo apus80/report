@@ -139,11 +139,10 @@
         <div class="item"><div class="name-box"><span id="gamma-net" class="net-status">sync</span>SPY Gamma Wall</div><span id="gamma" class="value">-</span></div>
     </div>
 </div>
-
-<script>
 <script>
 
 const WORKER="https://fmp-proxy.aiinvestflow.workers.dev/?symbol="
+const FRED="https://api.stlouisfed.org/fred/series/observations?api_key=5f6a050751729afcfabab471a6738a00&file_type=json&series_id="
 
 async function fetchPrice(symbol){
 
@@ -171,11 +170,60 @@ const el=document.getElementById(id)
 
 el.innerText=v.toFixed(2)
 
-if(el.classList.contains("up")||el.classList.contains("down")){
-el.classList.remove("up","down")
+}else{
+
+document.getElementById(id).innerText="-"
+
 }
 
 }
+
+async function fetchYahoo(symbol,id){
+
+try{
+
+const url="https://query1.finance.yahoo.com/v7/finance/quote?symbols="+symbol
+
+const r=await fetch(url)
+const j=await r.json()
+
+const p=j.quoteResponse.result[0].regularMarketPrice
+
+document.getElementById(id).innerText=p.toFixed(2)
+
+}catch(e){
+
+document.getElementById(id).innerText="-"
+
+}
+
+}
+
+async function fetchFred(series,id){
+
+try{
+
+const r=await fetch(FRED+series)
+const j=await r.json()
+
+const data=j.observations
+const last=data[data.length-1].value
+
+document.getElementById(id).innerText=parseFloat(last).toLocaleString()
+
+}catch(e){
+
+document.getElementById(id).innerText="-"
+
+}
+
+}
+
+async function loadKorea(){
+
+fetchYahoo("^KS11","kospi")
+fetchYahoo("^KQ11","kosdaq")
+fetchYahoo("NQ=F","nightfut")
 
 }
 
@@ -224,17 +272,67 @@ document.getElementById("btc").innerText=j.bitcoin.usd
 document.getElementById("eth").innerText=j.ethereum.usd
 document.getElementById("sol").innerText=j.solana.usd
 
-}catch(e){}
+}catch(e){
+
+document.getElementById("btc").innerText="-"
+document.getElementById("eth").innerText="-"
+document.getElementById("sol").innerText="-"
+
+}
+
+}
+
+async function loadLiquidity(){
+
+fetchFred("WALCL","fedbal")
+fetchFred("RRPONTSYD","repo")
+fetchFred("WTREGEN","tga")
+fetchFred("M2SL","m2")
+fetchFred("DGS10","us10y")
+fetchFred("DGS2","us2y")
+
+}
+
+async function loadSmartMoney(){
+
+document.getElementById("spyflow").innerText="-"
+document.getElementById("qqqflow").innerText="-"
+document.getElementById("iwmflow").innerText="-"
+
+}
+
+async function loadSentiment(){
+
+try{
+
+const r=await fetch("https://production.dataviz.cnn.io/index/fearandgreed/graphdata")
+
+const j=await r.json()
+
+document.getElementById("fear").innerText=j.fear_and_greed.score
+
+}catch(e){
+
+document.getElementById("fear").innerText="-"
+
+}
+
+document.getElementById("putcall").innerText="-"
+document.getElementById("gamma").innerText="-"
 
 }
 
 async function loadAll(){
 
+loadKorea()
 loadUSMarket()
 loadFutures()
 loadCommodities()
 loadFX()
 loadCrypto()
+loadLiquidity()
+loadSmartMoney()
+loadSentiment()
 
 }
 
