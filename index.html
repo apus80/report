@@ -1,165 +1,168 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InvestFlow AI Market Dashboard (Full & Integrated)</title>
-    <style>
-        :root {
-            --bg-dark: #0f172a;
-            --card-bg: #1e293b;
-            --primary: #38bdf8;
-            --up: #f87171;
-            --down: #60a5fa;
-            --text: #f8fafc;
-            --status-dim: #64748b;
-        }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-dark); color: var(--text); margin: 0; padding: 20px; }
-        h1 { text-align: center; margin-bottom: 30px; color: var(--primary); font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
-        .card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: 0.3s; }
-        .card:hover { transform: translateY(-4px); }
-       
-        .title-area { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 8px; margin-bottom: 15px; }
-        .title { font-size: 17px; color: var(--primary); font-weight: bold; margin: 0; }
-        .refresh-btn { background: none; border: none; color: var(--status-dim); cursor: pointer; font-size: 18px; transition: 0.2s; padding: 0 5px; }
-        .refresh-btn:hover { color: var(--primary); transform: rotate(180deg); }
 
-        .item { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; font-size: 14px; }
-        .name-box { display: flex; align-items: baseline; }
-        .net-status { font-size: 9px; margin-right: 8px; color: var(--status-dim); text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; }
-        .value { font-weight: bold; font-family: 'Consolas', monospace; white-space: nowrap; }
-        .up { color: var(--up); }
-        .down { color: var(--down); }
-        .percent { font-size: 12px; margin-left: 5px; font-weight: normal; opacity: 0.8; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>InvestFlow AI Market Dashboard</title>
+
+<style>
+
+:root{
+--bg-dark:#0f172a;
+--card-bg:#1e293b;
+--primary:#38bdf8;
+--up:#f87171;
+--down:#60a5fa;
+--text:#f8fafc;
+--status-dim:#64748b;
+}
+
+body{
+font-family:'Segoe UI',Arial;
+background:var(--bg-dark);
+color:var(--text);
+margin:0;
+padding:20px;
+}
+
+h1{
+text-align:center;
+margin-bottom:30px;
+color:var(--primary);
+font-weight:800;
+letter-spacing:2px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+gap:20px;
+}
+
+.card{
+background:var(--card-bg);
+padding:20px;
+border-radius:12px;
+box-shadow:0 4px 15px rgba(0,0,0,0.5);
+}
+
+.title-area{
+display:flex;
+justify-content:space-between;
+align-items:center;
+border-bottom:1px solid #334155;
+padding-bottom:8px;
+margin-bottom:15px;
+}
+
+.title{
+font-size:17px;
+color:var(--primary);
+font-weight:bold;
+}
+
+.refresh-btn{
+background:none;
+border:none;
+color:var(--status-dim);
+cursor:pointer;
+font-size:18px;
+}
+
+.item{
+display:flex;
+justify-content:space-between;
+margin:8px 0;
+font-size:14px;
+}
+
+.net-status{
+font-size:9px;
+margin-right:8px;
+color:var(--status-dim);
+}
+
+.value{
+font-weight:bold;
+font-family:Consolas;
+}
+
+</style>
 </head>
+
 <body>
 
-<h1>InvestFlow AI Market Dashboard</h1>
+<h1>INVESTFLOW AI MARKET DASHBOARD</h1>
 
 <div class="grid">
-    <div class="card">
-        <div class="title-area">
-            <span class="title">1. 한국 시장</span>
-            <button class="refresh-btn" onclick="loadKorea()">↻</button>
-        </div>
-        <div class="item"><div class="name-box"><span id="kospi-net" class="net-status">sync</span>KOSPI</div><span id="kospi" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="kosdaq-net" class="net-status">sync</span>KOSDAQ</div><span id="kosdaq" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="nightfut-net" class="net-status">sync</span>야간선물</div><span id="nightfut" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="foreign-net" class="net-status">sync</span>외국인 수급</div><span id="foreign" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="inst-net" class="net-status">sync</span>기관 수급</div><span id="inst" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="retail-net" class="net-status">sync</span>개인 수급</div><span id="retail" class="value">-</span></div>
-    </div>
 
-    <div class="card">
-        <div class="title-area">
-            <span class="title">2. 미국 시장</span>
-            <button class="refresh-btn" onclick="loadUSMarket()">↻</button>
-        </div>
-        <div class="item"><div class="name-box"><span id="sp500-net" class="net-status">sync</span>S&P500 (SPY)</div><span id="sp500" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="nasdaq-net" class="net-status">sync</span>NASDAQ (QQQ)</div><span id="nasdaq" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="vix-net" class="net-status">sync</span>VIX 지수</div><span id="vix" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="sox-net" class="net-status">sync</span>SOX (반도체)</div><span id="sox" class="value">-</span></div>
-    </div>
-
-    <div class="card">
-        <div class="title-area">
-            <span class="title">3. 미국 선물</span>
-            <button class="refresh-btn" onclick="loadFutures()">↻</button>
-        </div>
-        <div class="item"><div class="name-box"><span id="spfuture-net" class="net-status">sync</span>S&P500 Fut</div><span id="spfuture" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="nasfuture-net" class="net-status">sync</span>Nasdaq Fut</div><span id="nasfuture" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="rtyfuture-net" class="net-status">sync</span>Russel 2000 Fut</div><span id="rtyfuture" class="value">-</span></div>
-    </div>
-
-    <div class="card">
-        <div class="title-area">
-            <span class="title">4. 암호화폐</span>
-            <button class="refresh-btn" onclick="loadCrypto()">↻</button>
-        </div>
-        <div class="item"><div class="name-box"><span id="btc-net" class="net-status">sync</span>Bitcoin (BTC)</div><span id="btc" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="eth-net" class="net-status">sync</span>Ethereum (ETH)</div><span id="eth" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="sol-net" class="net-status">sync</span>Solana (SOL)</div><span id="sol" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="cryptocap-net" class="net-status">sync</span>Total Mkt Cap</div><span id="cryptocap" class="value">-</span></div>
-    </div>
-
-    <div class="card">
-        <div class="title-area">
-            <span class="title">5. 원자재 & 달러</span>
-            <button class="refresh-btn" onclick="loadCommodities()">↻</button>
-        </div>
-        <div class="item"><div class="name-box"><span id="gold-net" class="net-status">sync</span>Gold</div><span id="gold" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="silver-net" class="net-status">sync</span>Silver</div><span id="silver" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="oil-net" class="net-status">sync</span>Oil (WTI)</div><span id="oil" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="dxy-net" class="net-status">sync</span>Dollar Index</div><span id="dxy" class="value">-</span></div>
-    </div>
-
-    <div class="card">
-        <div class="title-area">
-            <span class="title">6. 외환 (FX)</span>
-            <button class="refresh-btn" onclick="loadFX()">↻</button>
-        </div>
-        <div class="item"><div class="name-box"><span id="uskrw-net" class="net-status">sync</span>USD/KRW</div><span id="uskrw" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="usjpy-net" class="net-status">sync</span>USD/JPY</div><span id="usjpy" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="eurusd-net" class="net-status">sync</span>EUR/USD</div><span id="eurusd" class="value">-</span></div>
-    </div>
-
-    <div class="card">
-        <div class="title-area">
-            <span class="title">7. Market Liquidity</span>
-            <button class="refresh-btn" onclick="loadLiquidity()">↻</button>
-        </div>
-        <div class="item"><div class="name-box"><span id="fedbal-net" class="net-status">sync</span>Fed Balance</div><span id="fedbal" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="repo-net" class="net-status">sync</span>Reverse Repo</div><span id="repo" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="tga-net" class="net-status">sync</span>TGA</div><span id="tga" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="m2-net" class="net-status">sync</span>M2 Supply</div><span id="m2" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="us10y-net" class="net-status">sync</span>10Y Treasury</div><span id="us10y" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="us2y-net" class="net-status">sync</span>2Y Treasury</div><span id="us2y" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="curve-net" class="net-status">sync</span>Yield Curve</div><span id="curve" class="value">-</span></div>
-    </div>
-
-    <div class="card">
-        <div class="title-area">
-            <span class="title">8. ETF Smart Money</span>
-            <button class="refresh-btn" onclick="loadSmartMoney()">↻</button>
-        </div>
-        <div class="item"><div class="name-box"><span id="spyflow-net" class="net-status">sync</span>SPY Vol Flow</div><span id="spyflow" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="qqqflow-net" class="net-status">sync</span>QQQ Vol Flow</div><span id="qqqflow" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="iwmflow-net" class="net-status">sync</span>IWM Vol Flow</div><span id="iwmflow" class="value">-</span></div>
-    </div>
-
-    <div class="card">
-        <div class="title-area">
-            <span class="title">9. Sentiment & Options</span>
-            <button class="refresh-btn" onclick="loadSentiment()">↻</button>
-        </div>
-        <div class="item"><div class="name-box"><span id="fear-net" class="net-status">sync</span>Fear & Greed</div><span id="fear" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="putcall-net" class="net-status">sync</span>Put/Call Ratio</div><span id="putcall" class="value">-</span></div>
-        <div class="item"><div class="name-box"><span id="gamma-net" class="net-status">sync</span>SPY Gamma Wall</div><span id="gamma" class="value">-</span></div>
-    </div>
+<div class="card">
+<div class="title-area"><span class="title">2. 미국 시장</span></div>
+<div class="item"><span>S&P500 (SPY)</span><span id="sp500" class="value">-</span></div>
+<div class="item"><span>NASDAQ (QQQ)</span><span id="nasdaq" class="value">-</span></div>
+<div class="item"><span>VIX</span><span id="vix" class="value">-</span></div>
+<div class="item"><span>SOX</span><span id="sox" class="value">-</span></div>
 </div>
+
+<div class="card">
+<div class="title-area"><span class="title">3. 미국 선물</span></div>
+<div class="item"><span>S&P500 Fut</span><span id="spfuture" class="value">-</span></div>
+<div class="item"><span>Nasdaq Fut</span><span id="nasfuture" class="value">-</span></div>
+<div class="item"><span>Russell Fut</span><span id="rtyfuture" class="value">-</span></div>
+</div>
+
+<div class="card">
+<div class="title-area"><span class="title">4. Crypto</span></div>
+<div class="item"><span>Bitcoin</span><span id="btc" class="value">-</span></div>
+<div class="item"><span>Ethereum</span><span id="eth" class="value">-</span></div>
+<div class="item"><span>Solana</span><span id="sol" class="value">-</span></div>
+</div>
+
+<div class="card">
+<div class="title-area"><span class="title">5. Commodities</span></div>
+<div class="item"><span>Gold</span><span id="gold" class="value">-</span></div>
+<div class="item"><span>Silver</span><span id="silver" class="value">-</span></div>
+<div class="item"><span>Oil</span><span id="oil" class="value">-</span></div>
+<div class="item"><span>DXY</span><span id="dxy" class="value">-</span></div>
+</div>
+
+<div class="card">
+<div class="title-area"><span class="title">6. FX</span></div>
+<div class="item"><span>USD/KRW</span><span id="uskrw" class="value">-</span></div>
+<div class="item"><span>USD/JPY</span><span id="usjpy" class="value">-</span></div>
+<div class="item"><span>EUR/USD</span><span id="eurusd" class="value">-</span></div>
+</div>
+
+<div class="card">
+<div class="title-area"><span class="title">7. Market Liquidity</span></div>
+<div class="item"><span>Fed Balance</span><span id="fedbal" class="value">-</span></div>
+<div class="item"><span>Reverse Repo</span><span id="repo" class="value">-</span></div>
+<div class="item"><span>M2</span><span id="m2" class="value">-</span></div>
+<div class="item"><span>10Y</span><span id="us10y" class="value">-</span></div>
+<div class="item"><span>2Y</span><span id="us2y" class="value">-</span></div>
+</div>
+
+</div>
+
 <script>
-    const FMP_KEY = "YOUR_FMP_KEY"
-const FRED_KEY = "5f6a050751729afcfabab471a6738a00"
 
-function setValue(id,value){
+const FMP="https://financialmodelingprep.com/api/v3/quote/"
+const FMP_KEY="YOUR_FMP_KEY"
 
-const el = document.getElementById(id)
+const FRED_KEY="5f6a050751729afcfabab471a6738a00"
 
-if(!el) return
+function setValue(id,val){
 
-if(value === null || value === undefined || value === ""){
+const el=document.getElementById(id)
 
-el.innerText = "-"
-
+if(!val){
+el.innerText="-"
 return
 }
 
-if(!isNaN(value))
-value = Number(value).toLocaleString(undefined,{maximumFractionDigits:2})
-
-el.innerText = value
+el.innerText=Number(val).toLocaleString(undefined,{maximumFractionDigits:2})
 
 }
 
@@ -167,7 +170,7 @@ async function fetchJSON(url){
 
 try{
 
-const r = await fetch(url)
+const r=await fetch(url)
 
 if(!r.ok) throw new Error()
 
@@ -183,20 +186,13 @@ return null
 
 async function fetchPrice(symbol){
 
-// 1️⃣ FMP
-let data = await fetchJSON(
-`https://financialmodelingprep.com/api/v3/quote/${symbol}?apikey=${FMP_KEY}`
-)
+let data=await fetchJSON(`${FMP}${symbol}?apikey=${FMP_KEY}`)
 
-if(data && data[0] && data[0].price)
-return data[0].price
+if(data && data[0] && data[0].price) return data[0].price
 
-// 2️⃣ Yahoo fallback
-data = await fetchJSON(
-`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}`
-)
+data=await fetchJSON(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}`)
 
-if(data && data.quoteResponse && data.quoteResponse.result[0])
+if(data && data.quoteResponse.result[0])
 return data.quoteResponse.result[0].regularMarketPrice
 
 return null
@@ -205,55 +201,27 @@ return null
 
 async function setPrice(symbol,id){
 
-const v = await fetchPrice(symbol)
+const p=await fetchPrice(symbol)
 
-setValue(id,v)
+setValue(id,p)
 
 }
 
-//
-// 미국 시장
-//
-
-async function loadUSMarket(){
+async function loadMarkets(){
 
 setPrice("SPY","sp500")
 setPrice("QQQ","nasdaq")
 setPrice("^VIX","vix")
 setPrice("^SOX","sox")
 
-}
-
-//
-// 선물
-//
-
-async function loadFutures(){
-
 setPrice("ES=F","spfuture")
 setPrice("NQ=F","nasfuture")
 setPrice("RTY=F","rtyfuture")
-
-}
-
-//
-// 원자재
-//
-
-async function loadCommodities(){
 
 setPrice("GC=F","gold")
 setPrice("SI=F","silver")
 setPrice("CL=F","oil")
 setPrice("DX-Y.NYB","dxy")
-
-}
-
-//
-// FX
-//
-
-async function loadFX(){
 
 setPrice("KRW=X","uskrw")
 setPrice("JPY=X","usjpy")
@@ -261,81 +229,43 @@ setPrice("EURUSD=X","eurusd")
 
 }
 
-//
-// Crypto
-//
-
 async function loadCrypto(){
 
-let data = await fetchJSON(
-"https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd"
-)
+const data=await fetchJSON("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd")
 
-if(data){
+if(!data) return
 
 setValue("btc",data.bitcoin.usd)
 setValue("eth",data.ethereum.usd)
 setValue("sol",data.solana.usd)
 
-}else{
-
-setValue("btc","-")
-setValue("eth","-")
-setValue("sol","-")
-
 }
-
-}
-
-//
-// FRED
-//
 
 async function loadFRED(series,id){
 
-const data = await fetchJSON(
-`https://api.stlouisfed.org/fred/series/observations?series_id=${series}&api_key=${FRED_KEY}&file_type=json`
-)
+const data=await fetchJSON(`https://api.stlouisfed.org/fred/series/observations?series_id=${series}&api_key=${FRED_KEY}&file_type=json`)
 
-if(data && data.observations){
+if(!data) return
 
-const last = data.observations[data.observations.length-1]
+const last=data.observations[data.observations.length-1]
 
 setValue(id,last.value)
 
-}else{
-
-setValue(id,"-")
-
 }
-
-}
-
-//
-// Liquidity
-//
 
 async function loadLiquidity(){
 
 loadFRED("WALCL","fedbal")
 loadFRED("RRPONTSYD","repo")
-loadFRED("WTREGEN","tga")
 loadFRED("M2SL","m2")
 loadFRED("DGS10","us10y")
 loadFRED("DGS2","us2y")
 
 }
 
-//
-// 전체 로딩
-//
-
 function loadAll(){
 
-loadUSMarket()
-loadFutures()
-loadCommodities()
-loadFX()
+loadMarkets()
 loadCrypto()
 loadLiquidity()
 
@@ -344,4 +274,8 @@ loadLiquidity()
 loadAll()
 
 setInterval(loadAll,60000)
+
 </script>
+
+</body>
+</html>
