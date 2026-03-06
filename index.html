@@ -63,25 +63,11 @@ color:var(--primary);
 font-weight:bold;
 }
 
-.refresh-btn{
-background:none;
-border:none;
-color:var(--status-dim);
-cursor:pointer;
-font-size:18px;
-}
-
 .item{
 display:flex;
 justify-content:space-between;
 margin:8px 0;
 font-size:14px;
-}
-
-.net-status{
-font-size:9px;
-margin-right:8px;
-color:var(--status-dim);
 }
 
 .value{
@@ -97,6 +83,16 @@ font-family:Consolas;
 <h1>INVESTFLOW AI MARKET DASHBOARD</h1>
 
 <div class="grid">
+
+<div class="card">
+<div class="title-area"><span class="title">1. 한국 시장</span></div>
+<div class="item"><span>KOSPI</span><span id="kospi" class="value">-</span></div>
+<div class="item"><span>KOSDAQ</span><span id="kosdaq" class="value">-</span></div>
+<div class="item"><span>야간선물</span><span id="kospifut" class="value">-</span></div>
+<div class="item"><span>외국인 수급</span><span id="foreignflow" class="value">-</span></div>
+<div class="item"><span>기관 수급</span><span id="instflow" class="value">-</span></div>
+<div class="item"><span>개인 수급</span><span id="retailflow" class="value">-</span></div>
+</div>
 
 <div class="card">
 <div class="title-area"><span class="title">2. 미국 시장</span></div>
@@ -144,20 +140,33 @@ font-family:Consolas;
 <div class="item"><span>2Y</span><span id="us2y" class="value">-</span></div>
 </div>
 
+<div class="card">
+<div class="title-area"><span class="title">8. ETF Smart Money</span></div>
+<div class="item"><span>SPY Vol Flow</span><span id="spyflow" class="value">-</span></div>
+<div class="item"><span>QQQ Vol Flow</span><span id="qqqflow" class="value">-</span></div>
+<div class="item"><span>IWM Vol Flow</span><span id="iwmflow" class="value">-</span></div>
+</div>
+
+<div class="card">
+<div class="title-area"><span class="title">9. Sentiment & Options</span></div>
+<div class="item"><span>Fear & Greed</span><span id="fear" class="value">-</span></div>
+<div class="item"><span>Put/Call Ratio</span><span id="putcall" class="value">-</span></div>
+<div class="item"><span>SPY Gamma Wall</span><span id="gamma" class="value">-</span></div>
+</div>
+
 </div>
 
 <script>
 
 const FMP="https://financialmodelingprep.com/api/v3/quote/"
 const FMP_KEY="YOUR_FMP_KEY"
-
 const FRED_KEY="5f6a050751729afcfabab471a6738a00"
 
 function setValue(id,val){
 
 const el=document.getElementById(id)
 
-if(!val){
+if(!val || val==="." ){
 el.innerText="-"
 return
 }
@@ -169,17 +178,11 @@ el.innerText=Number(val).toLocaleString(undefined,{maximumFractionDigits:2})
 async function fetchJSON(url){
 
 try{
-
 const r=await fetch(url)
-
 if(!r.ok) throw new Error()
-
 return await r.json()
-
-}catch(e){
-
+}catch{
 return null
-
 }
 
 }
@@ -188,11 +191,12 @@ async function fetchPrice(symbol){
 
 let data=await fetchJSON(`${FMP}${symbol}?apikey=${FMP_KEY}`)
 
-if(data && data[0] && data[0].price) return data[0].price
+if(data && data[0] && data[0].price)
+return data[0].price
 
 data=await fetchJSON(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}`)
 
-if(data && data.quoteResponse.result[0])
+if(data && data.quoteResponse && data.quoteResponse.result[0])
 return data.quoteResponse.result[0].regularMarketPrice
 
 return null
@@ -200,14 +204,15 @@ return null
 }
 
 async function setPrice(symbol,id){
-
 const p=await fetchPrice(symbol)
-
 setValue(id,p)
-
 }
 
 async function loadMarkets(){
+
+setPrice("^KS11","kospi")
+setPrice("^KQ11","kosdaq")
+setPrice("KOSPI200F=F","kospifut")
 
 setPrice("SPY","sp500")
 setPrice("QQQ","nasdaq")
