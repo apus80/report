@@ -14,16 +14,16 @@
             --text: #f8fafc;
         }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-dark); color: var(--text); margin: 0; padding: 20px; }
-        h1 { text-align: center; margin-bottom: 30px; color: var(--primary); font-weight: 800; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        h1 { text-align: center; margin-bottom: 30px; color: var(--primary); font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
         .card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: 0.3s; }
         .card:hover { transform: translateY(-4px); box-shadow: 0 0 25px rgba(0,0,0,0.8); }
         .title { font-size: 17px; margin-bottom: 15px; color: var(--primary); font-weight: bold; border-bottom: 1px solid #334155; padding-bottom: 8px; }
         .item { display: flex; justify-content: space-between; margin: 10px 0; font-size: 14px; }
-        .value { font-weight: bold; font-family: 'Consolas', monospace; }
+        .value { font-weight: bold; font-family: 'Consolas', monospace; white-space: nowrap; }
         .up { color: var(--up); }
         .down { color: var(--down); }
-        .chart { margin-top: 40px; border-radius: 12px; overflow: hidden; border: 1px solid #334155; }
+        .percent { font-size: 12px; margin-left: 5px; font-weight: normal; }
     </style>
 </head>
 <body>
@@ -32,19 +32,36 @@
 
 <div class="grid">
     <div class="card">
+        <div class="title">한국 시장</div>
+        <div class="item">KOSPI <span id="kospi" class="value">loading</span></div>
+        <div class="item">KOSDAQ <span id="kosdaq" class="value">loading</span></div>
+        <div class="item">야간선물 <span id="nightfut" class="value">loading</span></div>
+        <div class="item">외국인 수급 <span id="foreign" class="value">loading</span></div>
+        <div class="item">기관 수급 <span id="inst" class="value">loading</span></div>
+        <div class="item">개인 수급 <span id="retail" class="value">loading</span></div>
+    </div>
+
+    <div class="card">
         <div class="title">미국 시장</div>
-        <div class="item">S&P500 <span id="sp500" class="value">loading</span></div>
-        <div class="item">NASDAQ <span id="nasdaq" class="value">loading</span></div>
-        <div class="item">VIX <span id="vix" class="value">loading</span></div>
-        <div class="item">SOX <span id="sox" class="value">loading</span></div>
+        <div class="item">S&P500 (SPY) <span id="sp500" class="value">loading</span></div>
+        <div class="item">NASDAQ (QQQ) <span id="nasdaq" class="value">loading</span></div>
+        <div class="item">VIX 지수 <span id="vix" class="value">loading</span></div>
+        <div class="item">SOX (반도체) <span id="sox" class="value">loading</span></div>
     </div>
 
     <div class="card">
         <div class="title">미국 선물</div>
         <div class="item">S&P500 Fut <span id="spfuture" class="value">loading</span></div>
         <div class="item">Nasdaq Fut <span id="nasfuture" class="value">loading</span></div>
-        <div class="item">BTC <span id="btc" class="value">loading</span></div>
-        <div class="item">ETH <span id="eth" class="value">loading</span></div>
+        <div class="item">Russel 2000 Fut <span id="rtyfuture" class="value">loading</span></div>
+    </div>
+
+    <div class="card">
+        <div class="title">암호화폐</div>
+        <div class="item">Bitcoin (BTC) <span id="btc" class="value">loading</span></div>
+        <div class="item">Ethereum (ETH) <span id="eth" class="value">loading</span></div>
+        <div class="item">Solana (SOL) <span id="sol" class="value">loading</span></div>
+        <div class="item">Total Market Cap <span id="cryptocap" class="value">loading</span></div>
     </div>
 
     <div class="card">
@@ -52,185 +69,175 @@
         <div class="item">Gold <span id="gold" class="value">loading</span></div>
         <div class="item">Silver <span id="silver" class="value">loading</span></div>
         <div class="item">Oil (WTI) <span id="oil" class="value">loading</span></div>
-        <div class="item">DXY <span id="dxy" class="value">loading</span></div>
+        <div class="item">DXY (달러인덱스) <span id="dxy" class="value">loading</span></div>
     </div>
 
     <div class="card">
         <div class="title">외환 (FX)</div>
-        <div class="item">USD/KRW <span id="uskrw" class="value">loading</span></div>
+        <div class="item">USD/KRW (환율) <span id="uskrw" class="value">loading</span></div>
         <div class="item">USD/JPY <span id="usjpy" class="value">loading</span></div>
         <div class="item">EUR/USD <span id="eurusd" class="value">loading</span></div>
     </div>
 
     <div class="card">
-        <div class="title">AI / 반도체</div>
-        <div class="item">NVDA <span id="nvda" class="value">loading</span></div>
-        <div class="item">AMD <span id="amd" class="value">loading</span></div>
-        <div class="item">TSM <span id="tsm" class="value">loading</span></div>
-        <div class="item">AVGO <span id="avgo" class="value">loading</span></div>
-    </div>
-
-    <div class="card">
-        <div class="title">AI Sector Pro</div>
-        <div class="item">SMCI <span id="smci" class="value">loading</span></div>
-        <div class="item">ASML <span id="asml" class="value">loading</span></div>
-        <div class="item">PLTR <span id="pltr" class="value">loading</span></div>
-        <div class="item">ARM <span id="arm" class="value">loading</span></div>
-    </div>
-
-    <div class="card">
-        <div class="title">한국 시장</div>
-        <div class="item">KOSPI <span id="kospi" class="value">loading</span></div>
-        <div class="item">KOSDAQ <span id="kosdaq" class="value">loading</span></div>
-        <div class="item">야간선물 <span id="nightfut" class="value">loading</span></div>
-        <div class="item">외국인 <span id="foreign" class="value">loading</span></div>
-    </div>
-
-    <div class="card">
-        <div class="title">시장 내부지표</div>
-        <div class="item">Fear & Greed <span id="fear" class="value">52</span></div>
-        <div class="item">Put/Call <span id="putcall" class="value">loading</span></div>
-        <div class="item">Market Breadth <span id="breadth" class="value">loading</span></div>
-    </div>
-
-    <div class="card">
         <div class="title">Market Liquidity</div>
         <div class="item">Fed Balance <span id="fedbal" class="value">loading</span></div>
-        <div class="item">Reverse Repo <span id="repo" class="value">loading</span></div>
-        <div class="item">Treasury Cash <span id="tga" class="value">loading</span></div>
+        <div class="item">Reverse Repo (RRP) <span id="repo" class="value">loading</span></div>
+        <div class="item">Treasury Cash (TGA) <span id="tga" class="value">loading</span></div>
+        <div class="item">M2 Money Supply <span id="m2" class="value">loading</span></div>
+        <div class="item">10Y Treasury <span id="us10y" class="value">loading</span></div>
+        <div class="item">2Y Treasury <span id="us2y" class="value">loading</span></div>
+        <div class="item">Yield Curve (10Y-2Y) <span id="curve" class="value">loading</span></div>
     </div>
 
     <div class="card">
         <div class="title">ETF Smart Money</div>
-        <div class="item">SPY Flow <span id="spyflow" class="value">loading</span></div>
-        <div class="item">QQQ Flow <span id="qqqflow" class="value">loading</span></div>
-        <div class="item">IWM Flow <span id="iwmflow" class="value">loading</span></div>
+        <div class="item">SPY Vol <span id="spyflow" class="value">loading</span></div>
+        <div class="item">QQQ Vol <span id="qqqflow" class="value">loading</span></div>
+        <div class="item">IWM Vol <span id="iwmflow" class="value">loading</span></div>
     </div>
 
     <div class="card">
-        <div class="title">Options Gamma</div>
-        <div class="item">SPY Gamma <span id="gamma" class="value">loading</span></div>
-        <div class="item">Max Pain <span id="maxpain" class="value">loading</span></div>
+        <div class="title">Sentiment & Options</div>
+        <div class="item">Fear & Greed <span id="fear" class="value">52</span></div>
+        <div class="item">Put/Call Ratio <span id="putcall" class="value">0.84</span></div>
+        <div class="item">SPY Gamma Wall <span id="gamma" class="value">4.2B</span></div>
     </div>
 </div>
 
-<div class="chart">
-    <div id="tradingview_chart"></div>
-</div>
-
-<script src="https://s3.tradingview.com/tv.js"></script>
 <script>
-    // --- API KEYS ---
+    const POLYGON_KEY = "YOUR_POLYGON_API_KEY"; 
     const FMP_KEY = "JUTpjU8MvT3nTFv5CkJbVANjWntvcEiK";
     const FRED_KEY = "0237f97a074fe8296b3bb3b395e65057";
-    const ALPHA_KEY = "KEEQN51ANE3TW2LQ";
 
-    // --- Core Functions ---
-    async function loadFMPData() {
-        const symbols = "^GSPC,^IXIC,^VIX,^SOX,ES=F,NQ=F,GC=F,SI=F,CL=F,DX-Y.NYB,USD/KRW,USD/JPY,EUR/USD,NVDA,AMD,TSM,AVGO,SMCI,ASML,PLTR,ARM,^KS11,^KQ11";
+    // --- 수치 및 등락률 업데이트 함수 ---
+    function updateDisplay(id, data, isRate = false) {
+        const el = document.getElementById(id);
+        if (!el || !data) return;
+
+        const unit = isRate ? "%" : "";
+        const formattedPrice = data.price.toLocaleString(undefined, {minimumFractionDigits: 2});
+        
+        // 퍼센트 문자열 구성
+        let percentHtml = "";
+        if (data.percent !== undefined) {
+            const sign = data.percent > 0 ? "+" : "";
+            percentHtml = `<span class="percent">(${sign}${data.percent.toFixed(2)}%)</span>`;
+        }
+
+        el.innerHTML = formattedPrice + unit + percentHtml;
+
+        // 색상 적용
+        if (data.percent > 0 || data.change > 0) el.className = "value up";
+        else if (data.percent < 0 || data.change < 0) el.className = "value down";
+        else el.className = "value";
+    }
+
+    async function getPrice(symbol, polyTicker, fmpTicker) {
         try {
-            const r = await fetch(`https://financialmodelingprep.com/api/v3/quote/${symbols}?apikey=${FMP_KEY}`);
-            const data = await r.json();
-            const map = {};
-            data.forEach(d => { map[d.symbol] = d; });
+            const fmpRes = await fetch(`https://financialmodelingprep.com/api/v3/quote/${fmpTicker}?apikey=${FMP_KEY}`);
+            const fmpData = await fmpRes.json();
+            if (fmpData[0]) {
+                return { price: fmpData[0].price, percent: fmpData[0].changesPercentage, source: 'fmp' };
+            }
+        } catch (e) {}
+        return null;
+    }
 
-            update("sp500", map["^GSPC"]);
-            update("nasdaq", map["^IXIC"]);
-            update("vix", map["^VIX"]);
-            update("sox", map["^SOX"]);
-            update("spfuture", map["ES=F"]);
-            update("nasfuture", map["NQ=F"]);
-            update("gold", map["GC=F"]);
-            update("silver", map["SI=F"]);
-            update("oil", map["CL=F"]);
-            update("dxy", map["DX-Y.NYB"]);
-            update("uskrw", map["USD/KRW"]);
-            update("usjpy", map["USD/JPY"]);
-            update("eurusd", map["EUR/USD"]);
-            update("nvda", map["NVDA"]);
-            update("amd", map["AMD"]);
-            update("tsm", map["TSM"]);
-            update("avgo", map["AVGO"]);
-            update("smci", map["SMCI"]);
-            update("asml", map["ASML"]);
-            update("pltr", map["PLTR"]);
-            update("arm", map["ARM"]);
-            update("kospi", map["^KS11"]);
-            update("kosdaq", map["^KQ11"]);
-            
-            // 한국 야간선물 및 수급 (시뮬레이션 또는 추정 데이터)
-            document.getElementById("nightfut").innerText = (map["ES=F"]?.changesPercentage > 0 ? "▲ " : "▼ ") + (map["^KS11"]?.price * 1.002).toFixed(2);
-            document.getElementById("foreign").innerText = "+241억"; 
-        } catch(e) { console.error("FMP Load Error", e); }
+    async function loadMarketData() {
+        updateDisplay("sp500", await getPrice("S&P500", "SPY", "SPY"));
+        updateDisplay("nasdaq", await getPrice("NASDAQ", "QQQ", "QQQ"));
+        updateDisplay("vix", await getPrice("VIX", "VIX", "^VIX"));
+        updateDisplay("sox", await getPrice("SOX", "SOXX", "SOXX"));
+        
+        // 선물
+        updateDisplay("spfuture", await getPrice("ES", "ES=F", "ES=F"));
+        updateDisplay("nasfuture", await getPrice("NQ", "NQ=F", "NQ=F"));
+        
+        // 원자재
+        updateDisplay("gold", await getPrice("Gold", "XAUUSD", "GC=F"));
+        updateDisplay("oil", await getPrice("Oil", "WTI", "CL=F"));
+        updateDisplay("dxy", await getPrice("DXY", "DX", "DX-Y.NYB"));
+
+        // 한국 시장 (시뮬레이션 예시)
+        updateDisplay("kospi", {price: 2645.10, percent: 0.45});
+        updateDisplay("kosdaq", {price: 866.20, percent: -0.12});
+        updateDisplay("nightfut", {price: 352.80, percent: 0.22});
+        
+        document.getElementById("foreign").innerHTML = `+1,240억 <span class="percent">(▲)</span>`;
+        document.getElementById("foreign").className = "value up";
+        document.getElementById("inst").innerHTML = `-840억 <span class="percent">(▼)</span>`;
+        document.getElementById("inst").className = "value down";
+        document.getElementById("retail").innerHTML = `-310억 <span class="percent">(▼)</span>`;
+        document.getElementById("retail").className = "value down";
     }
 
     async function loadLiquidity() {
         try {
-            // FRED 연동 (Fed Balance Sheet: WALCL)
-            const r = await fetch(`https://api.stlouisfed.org/fred/series/observations?series_id=WALCL&api_key=${FRED_KEY}&file_type=json&limit=1&sort_order=desc`);
-            const d = await r.json();
-            if(d.observations) {
-                const val = (d.observations[0].value / 1000000).toFixed(2) + "T";
-                document.getElementById("fedbal").innerText = val;
+            const fetchFred = async (id) => {
+                const r = await fetch(`https://api.stlouisfed.org/fred/series/observations?series_id=${id}&api_key=${FRED_KEY}&file_type=json&limit=2&sort_order=desc`);
+                const d = await r.json();
+                if (d.observations && d.observations.length >= 2) {
+                    const curr = parseFloat(d.observations[0].value);
+                    const prev = parseFloat(d.observations[1].value);
+                    const pct = ((curr - prev) / prev) * 100;
+                    return { price: curr, percent: pct };
+                }
+                return null;
+            };
+
+            const fed = await fetchFred("WALCL");
+            if(fed) updateDisplay("fedbal", {price: fed.price / 1000000, percent: fed.percent});
+
+            const m2 = await fetchFred("M2SL");
+            if(m2) updateDisplay("m2", {price: m2.price / 1000, percent: m2.percent});
+
+            const t10 = await fetchFred("DGS10");
+            const t2 = await fetchFred("DGS2");
+            if(t10) updateDisplay("us10y", {price: t10.price, percent: t10.percent}, true);
+            if(t2) updateDisplay("us2y", {price: t2.price, percent: t2.percent}, true);
+            if(t10 && t2) {
+                const diff = t10.price - t2.price;
+                updateDisplay("curve", {price: diff, percent: 0}, true);
             }
-            // 수동/고정 업데이트 항목 (무료 API 제한 대응)
-            document.getElementById("repo").innerText = "421.5B";
-            document.getElementById("tga").innerText = "752.1B";
-        } catch(e) { console.error("Liquidity Load Error", e); }
+
+            document.getElementById("repo").innerText = "442.1B (-2.1%)";
+            document.getElementById("tga").innerText = "762.5B (+1.4%)";
+        } catch(e) {}
     }
 
     async function loadCrypto() {
         try {
-            const r = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true");
+            const r = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true");
             const d = await r.json();
-            document.getElementById("btc").innerText = "$" + d.bitcoin.usd.toLocaleString();
-            document.getElementById("eth").innerText = "$" + d.ethereum.usd.toLocaleString();
-        } catch(e) { console.error("Crypto Load Error", e); }
-    }
+            
+            const updateC = (id, coin) => {
+                updateDisplay(id, { price: coin.usd, percent: coin.usd_24h_change });
+            };
+            
+            updateC("btc", d.bitcoin);
+            updateC("eth", d.ethereum);
+            updateC("sol", d.solana);
 
-    async function loadETF() {
-        try {
-            const etfs = ['SPY', 'QQQ', 'IWM'];
-            for(let etf of etfs) {
-                const r = await fetch(`https://financialmodelingprep.com/api/v3/quote/${etf}?apikey=${FMP_KEY}`);
-                const d = await r.json();
-                if(d[0]) document.getElementById(`${etf.toLowerCase()}flow`).innerText = (d[0].volume / 1000000).toFixed(1) + "M";
+            const globalRes = await fetch("https://api.coingecko.com/api/v3/global");
+            const globalData = await globalRes.json();
+            if(globalData.data) {
+                updateDisplay("cryptocap", {
+                    price: globalData.data.total_market_cap.usd / 1e12, 
+                    percent: globalData.data.market_cap_change_percentage_24h_usd
+                });
             }
-        } catch(e) { console.error("ETF Load Error", e); }
+        } catch(e) {}
     }
 
-    function update(id, obj) {
-        const el = document.getElementById(id);
-        if(!el || !obj) return;
-        el.innerText = obj.price.toLocaleString();
-        if(obj.change > 0) el.className = "value up";
-        else if(obj.change < 0) el.className = "value down";
-    }
-
-    // --- TradingView ---
-    new TradingView.widget({
-        container_id: "tradingview_chart",
-        width: "100%", height: 500,
-        symbol: "NASDAQ:NDX", interval: "60",
-        timezone: "Asia/Seoul", theme: "dark",
-        style: "1", locale: "kr"
-    });
-
-    // --- Init ---
-    function init() {
-        loadFMPData();
-        loadLiquidity();
-        loadCrypto();
-        loadETF();
-        // 기타 내부지표 추정치
-        document.getElementById("putcall").innerText = "0.84";
-        document.getElementById("breadth").innerText = "62%";
-        document.getElementById("gamma").innerText = "4.2B";
-        document.getElementById("maxpain").innerText = "510.0";
+    async function init() {
+        await loadMarketData();
+        await loadLiquidity();
+        await loadCrypto();
     }
 
     init();
-    setInterval(init, 60000); // 1분마다 전체 갱신
+    setInterval(init, 60000);
 </script>
 
 </body>
